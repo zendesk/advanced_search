@@ -1,0 +1,112 @@
+<label>Status </label>
+<select class="status_operator">
+  <option></option>
+  <option value=":"> = </option>
+  <option value="greater"> &gt; </option>
+  <option value="less"> &lt; </option>
+</select>
+<select class="status_value">
+  <option></option>
+  <option value="new">new</option>
+  <option value="open">open</option>
+  <option value="pending">pending</option>
+  <option value="on-hold">on-hold</option>
+  <option value="solved">solved</option>
+  <option value="closed">closed</option>
+</select>
+&nbsp;&nbsp;
+<label>Type</label>
+<select class="ticket_type">
+  <option></option>
+  <option value="question">question</option>
+  <option value="problem">problem</option>
+  <option value="incident">incident</option>
+  <option value="task">task</option>
+</select>
+&nbsp;&nbsp;
+<label>Priority </label>
+<select class="priority_operator">
+  <option></option>
+  <option value=":"> = </option>
+  <option value="greater"> &gt; </option>
+  <option value="less"> &lt; </option>
+</select>
+<select class="priority_value">
+  <option></option>
+  <option value="urgent">urgent</option>
+  <option value="high">high</option>
+  <option value="normal">normal</option>
+  <option value="low">low</option>
+</select>
+&nbsp;&nbsp;
+<label>Date </label>
+<select class="date_type" name="date_type">
+  <option></option>
+  <option value="created">created</option>
+  <option value="updated">updated</option>
+  <option value="solved">solved</option>
+  <option value="due_date">due</option>
+</select>
+{{!-- this should be conditional on a date filter being selected above --}}
+<select class="date_operator">
+  <option></option>
+  <option value=":"> = </option>
+  <option value="greater"> &gt; </option>
+  <option value="less"> &lt; </option>
+</select>
+<input class="date_value" type="date"></input> 
+<br><br>
+
+<label>Group</label>
+<input class="group"></input>
+&nbsp;&nbsp;
+
+<label>Assignee</label>
+<input class="assignee"></input>
+&nbsp;&nbsp;
+<label>Submitter</label>
+<input class="submitter"></input>
+<br><br>
+
+<label>Organization</label>
+<input class="organization"></input>
+&nbsp;&nbsp;
+<label>Requester</label>
+<input class="requester"></input>
+<br><br>
+
+<label>Commenter</label>
+<input class="commenter"></input>
+&nbsp;&nbsp;
+<label>CC</label>
+<input class="cc"></input>
+<br><br>
+
+<label>Subject</label>
+<input class="subject"></input>
+&nbsp;&nbsp;
+<label>Description</label>
+<input class="description"></input>
+<br><br>
+
+<label>Tags</label>
+<input class="tags"></input>
+&nbsp;&nbsp;
+<label>Via</label>
+<select class="via">
+  <option></option>
+  <option value="mail">mail</option>
+  <option value="get_satisfaction">get_satisfaction</option>
+  <option value="dropbox">dropbox</option>
+  <option value="twitter_dm">twitter_dm</option>
+  <option value="twitter_fav">twitter_fav</option>
+  <option value="twitter">twitter</option>
+  <option value="voicemail">voicemail</option>
+  <option value="phone_call_inbound">phone_call_inbound</option>
+  <option value="phone_call_outbound">phone_call_outbound</option>
+  <option value="phone">phone</option>
+  <option value="sms">sms</option>
+  <option value="logmein">logmein</option>
+</select>
+
+

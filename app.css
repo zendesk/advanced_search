@@ -1,0 +1,8 @@
+input {
+  border: 1px solid #d3d3d3;
+}
+
+.right-column {
+  position: absolute;
+  left:380px;
+}

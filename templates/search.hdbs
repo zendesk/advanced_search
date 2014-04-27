@@ -5,11 +5,11 @@
       &nbsp;&nbsp;
       <label>Type</label>
       <select class="type">
-        <option>all</option>
-        <option value="tickets">tickets</option>
-        <option value="topics">topics</option>
-        <option value="users">users</option>
-        <option value="organizations">organizations</option>
+        <option disabled>all</option>
+        <option value="ticket">tickets</option>
+        <option value="topic" disabled>topics</option>
+        <option value="user" disabled>users</option>
+        <option value="organization" disabled>organizations</option>
       </select>
       &nbsp;&nbsp;
       <label>Sort By</label>
@@ -31,13 +31,14 @@
     <button class="search btn btn-primary" id="enter">Search</button>
   </form><br>
 
-  <form class="type_options form-inline">
-    Here we inject specific type options (when an object is chosen)
-  </form><br><br>
+  <div class="type_options">
+    {{!-- inject options here --}}
+  </div>
+  <br><br>
 
   <div class="results">
     <!--inject results here-->
-    Here we inject the results.
+    
   </div>
   <span class="loading">{{spinner "dotted"}}</span>
   <span class="no_results">This query has no results. Try broadening your search.</span>

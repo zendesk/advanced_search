@@ -1,23 +1,38 @@
-<table class="table">
+<table class="table well">
   {{!-- mixed results --}}
   <thead>
     <th>
       <td>Type</td>
+      <td>ID</td>
       <td>Subject / Title</td>
+      <td>Group</td>
+      <td>Assignee</td>
+      <td></td>
+      <td>Status</td>
+      <td>Priority</td>
       <td>Created</td>
       <td>Updated</td>
-      <td>Status</td>
+      
     </th>
   </thead>
   <tbody>
     {{#results}}
     {{!-- if ticket --}}
+
     <tr class="row">
+      
       <td>{{result_type}}</td>
-      <td>{{subject}}</td>
+      <td><a href="#/tickets/{{id}}">{{id}}</a></td>
+      <td><a href="#/tickets/{{id}}">{{subject}}</a></td>
+      <td>{{group_id}}</td>
+      <td>{{assignee_id}}</td>
+      <td></td>
+      <td>{{status}}</td>
+      <td>{{priority}}</td>
       <td>{{created_at}}</td>
       <td>{{updated_at}}</td>
-      <td>{{status}}</td>
+      
+
     </tr>
     {{!-- if topic --}}
 
