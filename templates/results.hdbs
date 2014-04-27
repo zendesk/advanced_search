@@ -1,17 +1,32 @@
 <table class="table">
+  {{!-- mixed results --}}
   <thead>
-    <th></th>
+    <th>
+      <td>Type</td>
+      <td>Subject / Title</td>
+      <td>Created</td>
+      <td>Updated</td>
+      <td>Status</td>
+    </th>
   </thead>
   <tbody>
     {{#results}}
+    {{!-- if ticket --}}
     <tr class="row">
-      <td>Result</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>{{result_type}}</td>
+      <td>{{subject}}</td>
+      <td>{{created_at}}</td>
+      <td>{{updated_at}}</td>
+      <td>{{status}}</td>
     </tr>
+    {{!-- if topic --}}
+
+    {{!-- if user --}}
+
+    {{!-- if organization --}}
     {{/results}}
   </tbody>
+
+
 
 </table>

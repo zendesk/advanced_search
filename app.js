@@ -137,11 +137,17 @@
         } else if (this.$('select.priority_operator').val() == 'less') {
           priority_operator = '<';
         }
+        var date_operator = '';
+        if(this.$('select.date_operator').val() == 'greater') {
+          date_operator = '>';
+        } else if (this.$('select.date_operator').val() == 'less') {
+          date_operator = '<';
+        }
         var filters = {
           "status": status_operator + this.$('select.status_value').val(),
           "type": this.$('select.ticket_type').val(),
           "priority": priority_operator + this.$('select.priority_value').val(),
-          "date": this.$('select.date_type').val() + this.$('select.date_operator').val() + this.$('input.date_value').val(),
+          "date": this.$('select.date_type').val() + date_operator + this.$('input.date_value').val(),
           "group": this.$('input.group').val(),
           "assignee": this.$('input.assignee').val(),
           "submitter": this.$('input.submitter').val(),
