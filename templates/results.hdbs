@@ -1,0 +1,17 @@
+<table class="table">
+  <thead>
+    <th></th>
+  </thead>
+  <tbody>
+    {{#results}}
+    <tr class="row">
+      <td>Result</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    {{/results}}
+  </tbody>
+
+</table>
