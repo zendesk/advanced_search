@@ -1,3 +1,3 @@
 # Advanced Search for Zendesk
 
-moved to [Zendesk Labs](https://github.com/zendesklabs/advsearch_app)
+beta app designed to provide a GUI for search filter keywords, as well as export of search results to CSV (via data URIs)
