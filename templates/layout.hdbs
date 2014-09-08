@@ -1,10 +1,11 @@
 <header>
-  <span class="logo"/>
-  <h3>{{setting "name"}}</h3>
+  <h3>{{setting "name"}} 
+    <a href="https://github.com/zendesklabs/advsearch_app"><i class="icon-question-sign"></i></a> 
+  </h3>
 </header>
 <section data-main/>
 <footer>
-  <a href="mailto:{{author.email}}">
-    {{author.name}}
-  </a>
+  <small class="pull-right">by 
+    <a href="https://github.com/jstjoe" class="muted">{{author.name}}</a>&nbsp;&nbsp;
+  </small>
 </footer>

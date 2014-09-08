@@ -1,38 +1,43 @@
-<table class="table well">
-  {{!-- mixed results --}}
+<h3>Results  <a href="data:text/csv;charset=utf-8,ID%2CSubject%2CGroup%2CAssignee%2CStatus%2CType%2CPriority%2CCreated%2CUpdated%0A{{#encoded_results}}{{id}}%2C%22{{subject}}%22%2C{{group_id}}%2C{{assignee_id}}%2C{{status}}%2C{{type}}%2C{{priority}}%2C{{created_at}}%2C{{updated_at}}%0A{{/encoded_results}}" download="results.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3>
+
+<br>
+<div class="well">
+<table class="table">
   <thead>
+    {{!-- if result_type == ticket --}}
     <th>
-      <td>Type</td>
       <td>ID</td>
-      <td>Subject / Title</td>
+      <td>Subject</td>
       <td>Group</td>
       <td>Assignee</td>
-      <td></td>
       <td>Status</td>
+      <td>Type</td>
       <td>Priority</td>
       <td>Created</td>
       <td>Updated</td>
       
     </th>
+    {{!-- if topic --}}
+
+    {{!-- if user --}}
+
+    {{!-- if organization --}}
+
   </thead>
   <tbody>
     {{#results}}
     {{!-- if ticket --}}
 
     <tr class="row">
-      
-      <td>{{result_type}}</td>
       <td><a href="#/tickets/{{id}}">{{id}}</a></td>
       <td><a href="#/tickets/{{id}}">{{subject}}</a></td>
       <td>{{group_id}}</td>
       <td>{{assignee_id}}</td>
-      <td></td>
-      <td>{{status}}</td>
+      <td>{{{status_label}}}</td>
+      <td>{{#if type}}<span class="label">{{type}}</span>{{/if}}</td>
       <td>{{priority}}</td>
       <td>{{created_at}}</td>
       <td>{{updated_at}}</td>
-      
-
     </tr>
     {{!-- if topic --}}
 
@@ -41,7 +46,5 @@
     {{!-- if organization --}}
     {{/results}}
   </tbody>
-
-
-
 </table>
+</div>

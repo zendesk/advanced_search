@@ -5,7 +5,6 @@
       &nbsp;&nbsp;
       <label>Type</label>
       <select class="type">
-        <option disabled>all</option>
         <option value="ticket">tickets</option>
         <option value="topic" disabled>topics</option>
         <option value="user" disabled>users</option>
@@ -28,16 +27,18 @@
         <option value="asc">Ascending</option>
       </select>
       &nbsp;&nbsp;
-    <button class="search btn btn-primary" id="enter">Search</button>
+      <label>All Pages <i class="icon-fire"></i></label>
+      <input class="all_pages" type="checkbox"></input>
+      &nbsp;&nbsp;
+    <button class="search btn btn-primary" id="enter">Search</button>&nbsp;&nbsp;
+    <a href="https://support.zendesk.com/entries/20239737" class="pull-right" target="blank">Search Options <i class="icon-info-sign"></i></a>
   </form><br>
 
   <div class="type_options">
     {{!-- inject options here --}}
   </div>
-  <br><br>
-
   <div class="results">
-    <!--inject results here-->
+    {{!-- inject results here --}}
     
   </div>
   <span class="loading">{{spinner "dotted"}}</span>

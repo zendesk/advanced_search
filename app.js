@@ -14,21 +14,27 @@
       // 'change select.assignee':'onAssigneeChanged',
 
       'click button.addFilter':'onAddFilterClicked',
-      'click button.search':'onSearchClicked'
+      'click button.search':'onSearchClicked',
 
+      // request events
+      'search.done':'onSearchComplete'
     },
     requests: {
-      searchIncremental: function(query, sort_by, sort_order, page) {
-        return {
-          url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
-        };
-      },
+      // searchIncremental: function(query, sort_by, sort_order, page) {
+      //   return {
+      //     url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
+      //   };
+      // },
       search: function(query, sort_by, sort_order, page) {
         return {
           url: helpers.fmt('/api/v2/search.json?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
         };
       },
-      
+      getUrl: function(url) {
+        return {
+          url: url
+        };
+      },
       getAssignees: function(page) {
         return {
           url: helpers.fmt('/api/v2/users.json?role[]=agent&role[]=admin&page=%@', page)
@@ -164,7 +170,7 @@
             }
             var ticket_filters = {
               "status": status_operator + this.$('select.status_value').val(),
-              "type": this.$('select.ticket_type').val(),
+              "ticket_type": this.$('select.ticket_type').val(),
               "priority": priority_operator + this.$('select.priority_value').val(),
               "date": this.$('select.date_type').val() + date_operator + this.$('input.date_value').val(),
               "group": this.$('input.group').val(),
@@ -179,48 +185,92 @@
               "tags": this.$('input.tags').val(), //.split(/\W/)
               "via": this.$('select.via').val()
             };
-            console.log(ticket_filters);
+
+            // render a template to build the filters string
             filter_string = this.renderTemplate('ticket_filter_string', {
               filters: ticket_filters
             });
-              // render a template to build the filters string?? that way you can use conditionals
-            
-            console.log(type);
-            
-
           break;
-        }
+        } // end case
 
         //no matter the type...
-
+        this.results = [];
         var query = string + filter_string + ' type:' + type,
           sort_by = this.$('select.sort_by').val(),
           sort_order = this.$('select.sort_order').val(),
           page = '1';
-        // console.log("sort by: " + sort_by);
-        // console.log("sort order: " + sort_order);
-        console.log(query);
         var encodedQuery = encodeURIComponent(query);
         
         this.$("span.no_results").hide();
         this.$("span.loading").show();
-        this.ajax('search', encodedQuery, sort_by, sort_order, page).done( function(response) {
-          var results = response.results;
-
-
-          var results_html = this.renderTemplate('results', {
-            results: results
-          });
-          this.$("span.loading").hide();
-          this.$('div.results').html(results_html);
-        }
-        );
+        // make the request
+        this.ajax('search', encodedQuery, sort_by, sort_order, page);
 
         
       } else {
         // pop an alert that a search must have at least two characters
-
+        services.notify("A search query must have at least two characters.", "error");
       }
+    },
+    onSearchComplete: function(response) {
+      var allPages = this.$('.all_pages').prop('checked');
+      this.results = this.results.concat(response.results);
+      if(allPages && response.next_page) {
+        // get the next page by URL
+        this.ajax('getUrl', response.next_page).done(function(response) {
+          this.onSearchComplete(response);
+        });
+        return;
+      } else {
+        
+      }
+      var results = this.results;
+      this.encoded = [];
+      _.each(results, function(result, n) {
+      // massage the data...
+        // format date
+        result.created_at = new Date(result.created_at);
+        result.created_at = result.created_at.toLocaleString();
+
+        result.updated_at = new Date(result.updated_at);
+        result.updated_at = result.updated_at.toLocaleString();
+        
+        // encode results in range
+        this.encoded[n] = {
+          type: encodeURIComponent(result.type),
+          id: encodeURIComponent(result.id),
+          subject: encodeURIComponent(result.subject),
+          group_id: encodeURIComponent(result.group_id),
+          assignee_id: encodeURIComponent(result.assignee_id),
+          status: encodeURIComponent(result.status),
+          priority: encodeURIComponent(result.priority),
+          created_at: encodeURIComponent(result.created_at),
+          updated_at: encodeURIComponent(result.updated_at)
+        };
+
+        //add labels
+        if(result.status == 'new') {
+          result.status_label = '<span class="ticket_status_label new">new</span>';
+        } else if (result.status == 'open') {
+          result.status_label = '<span class="ticket_status_label open">open</span>';
+        } else if (result.status == 'pending') {
+          result.status_label = '<span class="ticket_status_label pending">pending</span>';
+        } else if (result.status == 'on-hold') {
+          result.status_label = '<span class="ticket_status_label hold">on-hold</span>';
+        } else if (result.status == 'solved') {
+          result.status_label = '<span class="ticket_status_label solved">solved</span>';
+        } else if (result.status == 'closed') {
+          result.status_label = '<span class="ticket_status_label closed">closed</span>';
+        }
+      }.bind(this));
+
+      // display results
+      var results_html = this.renderTemplate('results', {
+        results: results,
+        encoded_results: this.encoded
+      });
+      this.$("span.loading").hide();
+      this.$('div.results').html(results_html);
     }
   };
 
