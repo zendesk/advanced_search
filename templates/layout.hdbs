@@ -1,6 +1,6 @@
 <header>
   <h3>{{setting "name"}} 
-    <a href="https://github.com/zendesklabs/advsearch_app"><i class="icon-question-sign"></i></a> 
+    <a href="https://github.com/zendesklabs/advanced_search"><i class="icon-question-sign"></i></a> 
   </h3>
 </header>
 <section data-main/>
