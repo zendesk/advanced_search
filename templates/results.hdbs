@@ -1,4 +1,4 @@
-<h3>Results  <a href="data:text/csv;charset=utf-8,ID%2CSubject%2CGroup%2CAssignee%2CStatus%2CType%2CPriority%2CCreated%2CUpdated%0A{{#encoded_results}}{{id}}%2C%22{{subject}}%22%2C{{group_id}}%2C{{assignee_id}}%2C{{status}}%2C{{type}}%2C{{priority}}%2C{{created_at}}%2C{{updated_at}}%0A{{/encoded_results}}" download="results.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3>
+<h3>Results ({{count}}) <a href="data:text/csv;charset=utf-8,ID%2CSubject%2CGroup%2CAssignee%2CStatus%2CType%2CPriority%2CCreated%2CUpdated%0A{{#encoded_results}}{{id}}%2C%22{{subject}}%22%2C{{group_id}}%2C{{assignee_id}}%2C{{status}}%2C{{type}}%2C{{priority}}%2C{{created_at}}%2C{{updated_at}}%0A{{/encoded_results}}" download="results.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3>
 
 <br>
 <div class="well">
@@ -48,3 +48,8 @@
   </tbody>
 </table>
 </div>
+{{!-- pagination --}}
+<ul class="pager">
+  <li><a class="prev_page" href="#">Previous</a></li>
+  <li><a class="next_page" href="#">Next</a></li>
+</ul>
