@@ -262,7 +262,7 @@
         result.updated_at = new Date(result.updated_at);
         result.updated_at = result.updated_at.toLocaleString();
         
-        // encode results
+        // encode results  TODO: iterate this so they don't have to be called by name
         this.encoded[n] = {
           type: encodeURIComponent(result.type),
           id: encodeURIComponent(result.id),
@@ -275,20 +275,8 @@
           updated_at: encodeURIComponent(result.updated_at)
         };
 
-        //add labels
-        if(result.status == 'new') {
-          result.status_label = '<span class="ticket_status_label new">new</span>';
-        } else if (result.status == 'open') {
-          result.status_label = '<span class="ticket_status_label open">open</span>';
-        } else if (result.status == 'pending') {
-          result.status_label = '<span class="ticket_status_label pending">pending</span>';
-        } else if (result.status == 'on-hold') {
-          result.status_label = '<span class="ticket_status_label hold">on-hold</span>';
-        } else if (result.status == 'solved') {
-          result.status_label = '<span class="ticket_status_label solved">solved</span>';
-        } else if (result.status == 'closed') {
-          result.status_label = '<span class="ticket_status_label closed">closed</span>';
-        }
+        //add status labels
+        result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
       }.bind(this));
       
       // display results
