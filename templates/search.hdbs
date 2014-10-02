@@ -1,36 +1,37 @@
 <div class="container-fluid">
   <form class="form-inline"> 
-      <label>Search</label>
-      <input class="string" type="search" id="input" name="search" autofocus></input>
-      &nbsp;&nbsp;
-      <label>Type</label>
-      <select class="type">
-        <option value="ticket">tickets</option>
-        <option value="topic" disabled>topics</option>
-        <option value="user" disabled>users</option>
-        <option value="organization" disabled>organizations</option>
-      </select>
-      &nbsp;&nbsp;
-      <label>Sort By</label>
-      <select class="sort_by" name="sort_by">
-        <option value="relevance">relevance</option>
-        <option value="updated_at">updated at</option>
-        <option value="created_at">created at</option>
-        <option value="priority">priority</option>
-        <option value="status">status</option>
-        <option value="ticket_type">ticket type</option>
-      </select>
-      &nbsp;&nbsp;
-      <label>Sort Order</label>
-      <select class="sort_order" name="sort_order">
-        <option value="desc">Descending</option>
-        <option value="asc">Ascending</option>
-      </select>
-      &nbsp;&nbsp;
-      <label>All Pages <i class="icon-fire"></i></label>
-      <input class="all_pages" type="checkbox"></input>
-      &nbsp;&nbsp;
-    <button class="search btn btn-primary" id="enter">Search</button>&nbsp;&nbsp;
+    <label>Search</label>
+    <input class="string" type="search" id="input" name="search" autofocus></input>
+    &nbsp;&nbsp;
+    <label>Type</label>
+    <select class="type">
+      <option value="ticket">tickets</option>
+      <option value="topic" disabled>topics</option>
+      <option value="user" disabled>users</option>
+      <option value="organization" disabled>organizations</option>
+    </select>
+    &nbsp;&nbsp;
+    <label>Sort By</label>
+    <select class="sort_by" name="sort_by">
+      <option value="relevance">relevance</option>
+      <option value="updated_at">updated at</option>
+      <option value="created_at">created at</option>
+      <option value="priority">priority</option>
+      <option value="status">status</option>
+      <option value="ticket_type">ticket type</option>
+    </select>
+    &nbsp;&nbsp;
+    <label>Sort Order</label>
+    <select class="sort_order" name="sort_order">
+      <option value="desc">Descending</option>
+      <option value="asc">Ascending</option>
+    </select>
+    &nbsp;&nbsp;
+    <button class="search btn btn-primary" id="enter">Search</button>
+    &nbsp;&nbsp;
+    <label>All Pages <i class="icon-fire"></i></label>
+    <input class="all_pages" type="checkbox"></input>
+    &nbsp;&nbsp;
     <a href="https://support.zendesk.com/entries/20239737" class="pull-right" target="blank">Search Options <i class="icon-info-sign"></i></a>
   </form><br>
 

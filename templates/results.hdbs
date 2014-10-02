@@ -49,7 +49,16 @@
 </table>
 </div>
 {{!-- pagination --}}
+
 <ul class="pager">
-  <li><a class="prev_page" href="#">Previous</a></li>
-  <li><a class="next_page" href="#">Next</a></li>
+  {{#if prev_page}}
+  <li class="previous">
+    <a href="#" class="prev_page">&larr; Previous page</a>
+  </li>
+  {{/if}}
+  {{#if next_page}}
+  <li class="next">
+    <a href="#" class="next_page">Next page &rarr;</a>
+  </li>
+  {{/if}}
 </ul>

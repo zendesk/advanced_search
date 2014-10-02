@@ -1,4 +1,4 @@
-<form class="type_options form-inline well">
+<form class="ticket_options form-inline well">
   <label>Status </label>
   <select class="status_operator">
     <option></option>
@@ -57,63 +57,54 @@
   </select>
   <input class="date_value" type="date"></input> 
   <br><br>
+{{!-- line 2 --}}
+  <div class="column column_1">
+    <label>Group</label><br>
+    <input class="group"></input>
+    <br>
+    <label>Organization</label><br>
+    <input class="organization"></input>
+    <br>
+    <label>Commenter</label><br>
+    <input class="commenter"></input>
+    <br>
+    <label>Subject</label><br>
+    <input class="subject"></input>
+    <br>
+    <label>Tags</label><br>
+    <input class="tags"></input>
+    <br>
+  </div>
 
-  <label>Group</label>
-  <input class="group"></input>
-  &nbsp;&nbsp;
-
-  <span class="right-column">
-  <label>Assignee</label>
-  <input class="assignee"></input>
-  </span>
-  <br><br>
-
-  <label>Organization</label>
-  <input class="organization"></input>
-  &nbsp;&nbsp;
-  <span class="right-column">
-  <label>Requester</label>
-  <input class="requester"></input>
-  </span>
-  <br><br>
-
-  <label>Commenter</label>
-  <input class="commenter"></input>
-  &nbsp;&nbsp;
-  <span class="right-column">
-  <label>CC</label>
-  <input class="cc"></input>
-  </span>
-  <br><br>
-
-  <label>Subject</label>
-  <input class="subject"></input>
-  &nbsp;&nbsp;
-  <span class="right-column">
-  <label>Description</label>
-  <input class="description"></input>
-  </span>
-  <br><br>
-
-  <label>Tags</label>
-  <input class="tags"></input>
-  &nbsp;&nbsp;
-  <span class="right-column">
-  <label>Via</label>
-  <select class="via">
-    <option></option>
-    <option value="mail">mail</option>
-    <option value="get_satisfaction">get_satisfaction</option>
-    <option value="dropbox">dropbox</option>
-    <option value="twitter_dm">twitter_dm</option>
-    <option value="twitter_fav">twitter_fav</option>
-    <option value="twitter">twitter</option>
-    <option value="voicemail">voicemail</option>
-    <option value="phone_call_inbound">phone_call_inbound</option>
-    <option value="phone_call_outbound">phone_call_outbound</option>
-    <option value="phone">phone</option>
-    <option value="sms">sms</option>
-    <option value="logmein">logmein</option>
-  </select>
-</span>
+{{!-- column 2 --}}
+  <div class="column column_2">
+    <label>Assignee</label><br>
+    <input class="assignee"></input>
+    <br>
+    <label>Requester</label><br>
+    <input class="requester"></input>
+    <br>
+    <label>CC</label><br>
+    <input class="cc"></input>
+    <br>
+    <label>Description</label><br>
+    <input class="description"></input>
+    <br>
+    <label>Via</label><br>
+    <select class="via">
+      <option></option>
+      <option value="mail">mail</option>
+      <option value="get_satisfaction">get_satisfaction</option>
+      <option value="dropbox">dropbox</option>
+      <option value="twitter_dm">twitter_dm</option>
+      <option value="twitter_fav">twitter_fav</option>
+      <option value="twitter">twitter</option>
+      <option value="voicemail">voicemail</option>
+      <option value="phone_call_inbound">phone_call_inbound</option>
+      <option value="phone_call_outbound">phone_call_outbound</option>
+      <option value="phone">phone</option>
+      <option value="sms">sms</option>
+      <option value="logmein">logmein</option>
+    </select>
+  </div>
 </form>
