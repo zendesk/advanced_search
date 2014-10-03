@@ -3,11 +3,11 @@
   "author": {
     "name": "Joe McCarron",
     "email": "joe@zendesk.com",
-    "url": ""
+    "url": "https://github.com/jstjoe"
   },
   "defaultLocale": "en",
   "private": true,
   "location": "nav_bar",
-  "version": "0.2",
+  "version": "0.8.3",
   "frameworkVersion": "1.0"
 }

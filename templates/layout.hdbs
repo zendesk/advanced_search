@@ -1,4 +1,5 @@
 <header>
+  <span class="logo"/>
   <h3>{{setting "name"}} 
     <a href="https://github.com/zendesklabs/advanced_search"><i class="icon-question-sign"></i></a> 
   </h3>
