@@ -34,9 +34,9 @@
       <td>{{group_id}}</td>
       <td>
       {{#if assignee_name}}
-        <a href="/agent/user/{{assignee_id}}">{{assignee_name}}</a></td>
+        <a href="/agent/users/{{assignee_id}}">{{assignee_name}}</a></td>
       {{else}}
-        <a href="/agent/user/{{assignee_id}}">{{assignee_id}}</a></td>
+        <a href="/agent/users/{{assignee_id}}">{{assignee_id}}</a></td>
       {{/if}}
       <td>{{{status_label}}}</td>
       <td>{{#if type}}<span class="label">{{type}}</span>{{/if}}</td>
