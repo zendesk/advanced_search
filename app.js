@@ -42,6 +42,11 @@
         return {
           url: helpers.fmt('/api/v2/users.json?role[]=agent&role[]=admin&page=%@', page)
         };
+      },
+      getUser: function(id) {
+        return {
+          url: helpers.fmt('/api/v2/users/%@.json', id)
+        };
       }
     },
 
@@ -275,65 +280,101 @@
         numberOfResults = response.count;
       }
 
-      var results = this.results;
-      if(results.length === 0) {
+
+      
+      if(this.results.length === 0) {
         this.$("span.loading").hide();
         this.$('span.no_results').show();
         return;
       }
+        //add support for assignee name
+        var assignee_array = [];
+        var assignee_lookup = [];
+        var assignee_map = [];
+         _.each(this.results, function(result){
+          assignee_array.push(result.assignee_id);
+         });
+         assignee_array = _.uniq(assignee_array);
+         _.each(assignee_array, function(id){
+          var promise = this.ajax('getUser', id)
+          .done(function(data){
+            var userobj = {};
+            userobj.id = data.user.id;
+            userobj.name = data.user.name;
+            assignee_map.push(userobj);
+          });
+          assignee_lookup.push(promise);
+         }.bind(this));
+         this.when.apply(this, assignee_lookup).then(function(){
+          _.each(this.results, function(result){
+            var assignee = _.filter(assignee_map, function(user){
+              return user.id === result.assignee_id;
+            });
+            result.assignee_name = assignee[0].name;
+          });
+          this.encodeComponents(this.results);
+
+          // display results
+          var results_html = this.renderTemplate('results', {
+            results: this.results,
+            encoded_results: this.encoded,
+            count: numberOfResults,
+            next_page: next_page,
+            prev_page: prev_page
+          });
+          this.$("span.loading").hide();
+          this.$('div.results').html(results_html);
+      }.bind(this));
+
+
+
+
+    },
+
+    encodeComponents: function(results) {
       // TODO make conditional for results type - e.g. this.type == 'tickets'
       // massage the data...
-      this.encoded = [];
-      _.each(results, function(result, n) {
-        // format date
-        result.created_at = new Date(result.created_at);
-        result.created_at = result.created_at.toLocaleString();
+        this.encoded = [];
+        _.each(results, function(result, n) {
+          // format date
+          result.created_at = new Date(result.created_at);
+          result.created_at = result.created_at.toLocaleString();
 
-        result.updated_at = new Date(result.updated_at);
-        result.updated_at = result.updated_at.toLocaleString();
-        
-        // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
-        this.encoded[n] = {
-          type: encodeURIComponent(result.type),
-          id: encodeURIComponent(result.id),
-          subject: encodeURIComponent(result.subject),
-          group_id: encodeURIComponent(result.group_id),
-          assignee_id: encodeURIComponent(result.assignee_id),
-          requester_id: encodeURIComponent(result.requester_id),
-          status: encodeURIComponent(result.status),
-          priority: encodeURIComponent(result.priority),
-          created_at: encodeURIComponent(result.created_at),
-          updated_at: encodeURIComponent(result.updated_at),
+          result.updated_at = new Date(result.updated_at);
+          result.updated_at = result.updated_at.toLocaleString();
+          
+          // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
+          this.encoded[n] = {
+            type: encodeURIComponent(result.type),
+            id: encodeURIComponent(result.id),
+            subject: encodeURIComponent(result.subject),
+            group_id: encodeURIComponent(result.group_id),
+            assignee_id: encodeURIComponent(result.assignee_id),
+            assignee_name: encodeURIComponent(result.assignee_name),
+            requester_id: encodeURIComponent(result.requester_id),
+            status: encodeURIComponent(result.status),
+            priority: encodeURIComponent(result.priority),
+            created_at: encodeURIComponent(result.created_at.replace(',','')), //comma encoding issue w/CSV ISO date strings. This makes it better by plucking teh commas
+            updated_at: encodeURIComponent(result.updated_at.replace(',','')),
 
-          external_id: encodeURIComponent(result.external_id),
-          channel:  encodeURIComponent(result.via.channel),
-          description:  encodeURIComponent(result.description),
-          recipient:  encodeURIComponent(result.recipient),
-          submitter_id: encodeURIComponent(result.submitter_id),
-          organization_id:  encodeURIComponent(result.organization_id),
-          collaborator_ids:  encodeURIComponent(result.collaborator_ids),
-          forum_topic_id:  encodeURIComponent(result.forum_topic_id),
-          problem_id:  encodeURIComponent(result.problem_id),
-          has_incidents:  encodeURIComponent(result.has_incidents),
-          tags:  encodeURIComponent(result.tags)
+            external_id: encodeURIComponent(result.external_id),
+            channel:  encodeURIComponent(result.via.channel),
+            description:  encodeURIComponent(result.description),
+            recipient:  encodeURIComponent(result.recipient),
+            submitter_id: encodeURIComponent(result.submitter_id),
+            organization_id:  encodeURIComponent(result.organization_id),
+            collaborator_ids:  encodeURIComponent(result.collaborator_ids),
+            forum_topic_id:  encodeURIComponent(result.forum_topic_id),
+            problem_id:  encodeURIComponent(result.problem_id),
+            has_incidents:  encodeURIComponent(result.has_incidents),
+            tags:  encodeURIComponent(result.tags)
 
-          // TODO: + custom fields
-        };
+            // TODO: + custom fields
+          };
 
-        //add status labels
-        result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
-      }.bind(this));
-      
-      // display results
-      var results_html = this.renderTemplate('results', {
-        results: results,
-        encoded_results: this.encoded,
-        count: numberOfResults,
-        next_page: next_page,
-        prev_page: prev_page
-      });
-      this.$("span.loading").hide();
-      this.$('div.results').html(results_html);
+          //add status labels
+          result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
+        }.bind(this));
     }
   };
 
