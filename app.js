@@ -313,6 +313,7 @@
             result.assignee_name = assignee[0].name;
           });
           this.encodeComponents(this.results);
+          console.log(this.encoded);
 
           // display results
           var results_html = this.renderTemplate('results', {
@@ -354,8 +355,8 @@
             requester_id: encodeURIComponent(result.requester_id),
             status: encodeURIComponent(result.status),
             priority: encodeURIComponent(result.priority),
-            created_at: encodeURIComponent(result.created_at),
-            updated_at: encodeURIComponent(result.updated_at),
+            created_at: encodeURIComponent(result.created_at.replace(',','')), //comma encoding issue w/CSV ISO date strings. This makes it better by plucking teh commas
+            updated_at: encodeURIComponent(result.updated_at.replace(',','')),
 
             external_id: encodeURIComponent(result.external_id),
             channel:  encodeURIComponent(result.via.channel),
