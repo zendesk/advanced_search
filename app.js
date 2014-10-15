@@ -313,7 +313,6 @@
             result.assignee_name = assignee[0].name;
           });
           this.encodeComponents(this.results);
-          console.log(this.encoded);
 
           // display results
           var results_html = this.renderTemplate('results', {
