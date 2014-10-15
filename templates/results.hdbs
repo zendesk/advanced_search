@@ -32,7 +32,12 @@
       <td><a href="/agent/tickets/{{id}}">{{id}}</a></td>
       <td><a href="/agent/tickets/{{id}}">{{subject}}</a></td>
       <td>{{group_id}}</td>
-      <td><a href="/agent/user/{{assignee_id}}">{{assignee_name}}</a></td>
+      <td>
+      {{#if assignee_name}}
+        <a href="/agent/user/{{assignee_id}}">{{assignee_name}}</a></td>
+      {{else}}
+        <a href="/agent/user/{{assignee_id}}">{{assignee_id}}</a></td>
+      {{/if}}
       <td>{{{status_label}}}</td>
       <td>{{#if type}}<span class="label">{{type}}</span>{{/if}}</td>
       <td>{{priority}}</td>
