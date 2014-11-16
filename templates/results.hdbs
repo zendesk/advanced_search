@@ -32,7 +32,7 @@
       <td><a href="#/tickets/{{id}}">{{id}}</a></td>
       <td><a href="#/tickets/{{id}}">{{subject}}</a></td>
       <td>{{group_id}}</td>
-      <td>{{assignee_id}}</td>
+      <td>{{assignee}}</td>
       <td>{{{status_label}}}</td>
       <td>{{#if type}}<span class="label">{{type}}</span>{{/if}}</td>
       <td>{{priority}}</td>

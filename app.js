@@ -42,11 +42,36 @@
         return {
           url: helpers.fmt('/api/v2/users.json?role[]=agent&role[]=admin&page=%@', page)
         };
+      },
+      getUsersBatch: function(userBatch) {
+        var ids = userBatch.toString();
+        return {
+          url: '/api/v2/users.json?show_many=' + ids
+        };
       }
     },
 
     loadSettings: function() {
+      
+      
 
+    },
+    indexBy: function(obj, value, context) {
+      var group = function(behavior) {
+        return function(obj, iteratee, context) {
+          var result = {};
+          iteratee = cb(iteratee, context);
+          _.each(obj, function(value, index) {
+            var key = iteratee(value, index, obj);
+            behavior(result, value, key);
+          });
+          return result;
+        };
+      };
+
+      return group(obj, value, context, function(result, key, value) {
+        result[key] = value;
+      });
     },
     onPaneActivated: function(data) {
       if(data.firstLoad) {
@@ -54,7 +79,8 @@
         this.switchTo('search');
         this.$('span.loading').hide();
         this.$('span.no_results').hide();
-
+        this.userIDs = [];
+        this.users = {};
         //shortcut
         var e = {
           "currentTarget": {
@@ -62,6 +88,24 @@
           }
         };
         this.onTypeChanged(e);
+
+        // _.indexBy = function(obj, value, context) {
+        //   var group = function(behavior) {
+        //     return function(obj, iteratee, context) {
+        //       var result = {};
+        //       iteratee = cb(iteratee, context);
+        //       _.each(obj, function(value, index) {
+        //         var key = iteratee(value, index, obj);
+        //         behavior(result, value, key);
+        //       });
+        //       return result;
+        //     };
+        //   };
+
+        //   return group(obj, value, context, function(result, key, value) {
+        //     result[key] = value;
+        //   });
+        // };
       }
     },
 
@@ -256,8 +300,7 @@
       var allPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
       var next_page,
-          prev_page,
-          numberOfResults;
+          prev_page;
       if(allPages && response.next_page) {
         // get the next page by URL
         this.ajax('getUrl', response.next_page);
@@ -272,7 +315,7 @@
           prev_page = response.previous_page;
           this.prev_page = response.previous_page;
         }
-        numberOfResults = response.count;
+        this.numberOfResults = response.count;
       }
 
       var results = this.results;
@@ -283,23 +326,72 @@
       }
       // TODO make conditional for results type - e.g. this.type == 'tickets'
       // massage the data...
+      _.each(results, function(result, n) {
+        // store user IDs
+         // TODO add each collaborator_ids
+        var last;
+        if(results.length == n+1) {
+          last = true;
+        } else {
+          last = false;
+        }
+        console.log('Last? ' + last);
+        this.addUsers([result.assignee_id, result.requester_id, result.submitter_id], last);
+        // this.addUsers(result.collaborator_ids, last);
+        
+        
+      }.bind(this));
+    },
+    addUsers: function(ids, last) {
+      _.each(ids, function(id) {
+        this.userIDs.push(id);
+      }.bind(this));
+      this.userIDs = _.filter(_.uniq(this.userIDs), Boolean);
+
+      if(this.userIDs.length >= 100 || last) {
+        var userBatch = _.first(this.userIDs, 100);
+        this.userIDs = _.rest(this.userIDs, 99);
+        console.log(userBatch);
+        this.ajax('getUsersBatch', userBatch).done(function(response) {
+          // 
+          // var users = this.indexBy(response.users, 'id');
+          this.users = _.extend(this.users, response.users);
+          if(last) {
+            console.log(this.users);
+            // encode and render the results
+            this.encodeResults(this.results);
+            
+          }
+        });
+      }
+    },
+    encodeResults: function(results) {
       this.encoded = [];
       _.each(results, function(result, n) {
+
         // format date
         result.created_at = new Date(result.created_at);
         result.created_at = result.created_at.toLocaleString();
 
         result.updated_at = new Date(result.updated_at);
         result.updated_at = result.updated_at.toLocaleString();
-        
+
+        // look up users from unique array
+        var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
+          requester = _.find(this.users, function(user) { return user.id == result.requester_id; });
+
+        // replace user ids w/ names
+        result.assignee = assignee.name;
+        result.requester = requester.name;
+
         // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
         this.encoded[n] = {
           type: encodeURIComponent(result.type),
           id: encodeURIComponent(result.id),
           subject: encodeURIComponent(result.subject),
           group_id: encodeURIComponent(result.group_id),
-          assignee_id: encodeURIComponent(result.assignee_id),
-          requester_id: encodeURIComponent(result.requester_id),
+          assignee_id: encodeURIComponent(_.find(this.users, function(user) { return user.id == result.assignee_id; }) || result.assignee_id),
+          requester_id: encodeURIComponent(this.users[result.requester_id] || result.requester_id),
           status: encodeURIComponent(result.status),
           priority: encodeURIComponent(result.priority),
           created_at: encodeURIComponent(result.created_at),
@@ -322,15 +414,16 @@
 
         //add status labels
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
+
       }.bind(this));
       
       // display results
       var results_html = this.renderTemplate('results', {
         results: results,
         encoded_results: this.encoded,
-        count: numberOfResults,
-        next_page: next_page,
-        prev_page: prev_page
+        count: this.numberOfResults,
+        next_page: this.next_page,
+        prev_page: this.prev_page
       });
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);
