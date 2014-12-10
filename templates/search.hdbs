@@ -1,5 +1,5 @@
 <div class="container-fluid">
-  <form class="form-inline"> 
+  <form class="form-inline main_search"> 
     <label>Search</label>
     <input class="string" type="search" id="input" name="search" autofocus></input>
     &nbsp;&nbsp;

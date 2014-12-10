@@ -20,7 +20,8 @@
 
       // request events
       'search.done':'onSearchComplete',
-      'getUrl.done':'onSearchComplete'
+      'getUrl.done':'onSearchComplete',
+      'getCustomTicketFields.done':'gotFields'
     },
     requests: {
       // searchIncremental: function(query, sort_by, sort_order, page) {
@@ -46,7 +47,13 @@
       getUsersBatch: function(userBatch) {
         var ids = userBatch.toString();
         return {
-          url: '/api/v2/users.json?show_many=' + ids
+          url: '/api/v2/users/show_many.json?ids=' + ids
+        };
+      },
+      getCustomTicketFields: function(url) {
+        if(!url) {url = '/api/v2/ticket_fields.json';}
+        return {
+          url: url
         };
       }
     },
@@ -56,23 +63,6 @@
       
 
     },
-    indexBy: function(obj, value, context) {
-      var group = function(behavior) {
-        return function(obj, iteratee, context) {
-          var result = {};
-          iteratee = cb(iteratee, context);
-          _.each(obj, function(value, index) {
-            var key = iteratee(value, index, obj);
-            behavior(result, value, key);
-          });
-          return result;
-        };
-      };
-
-      return group(obj, value, context, function(result, key, value) {
-        result[key] = value;
-      });
-    },
     onPaneActivated: function(data) {
       if(data.firstLoad) {
         // render the default template
@@ -81,31 +71,27 @@
         this.$('span.no_results').hide();
         this.userIDs = [];
         this.users = {};
+        this.allCustomFields = [];
+        this.columns = {};
+
+        this.ajax('getCustomTicketFields');
+
+      }
+    },
+    gotFields: function(response) {
+      this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
+      if(response.next_page) {
+        this.ajax('getCustomTicketFields', response.next_page);
+        return;
+      } else {
+        // pagination done
+        this.allCustomFields = _.filter(this.allCustomFields, function(cf) {
+          return !_.contains(['subject', 'description', 'status',
+                                'tickettype', 'priority', 'group', 'assignee'], cf.type);
+        });
         //shortcut
-        var e = {
-          "currentTarget": {
-            "value":"ticket"
-          }
-        };
-        this.onTypeChanged(e);
-
-        // _.indexBy = function(obj, value, context) {
-        //   var group = function(behavior) {
-        //     return function(obj, iteratee, context) {
-        //       var result = {};
-        //       iteratee = cb(iteratee, context);
-        //       _.each(obj, function(value, index) {
-        //         var key = iteratee(value, index, obj);
-        //         behavior(result, value, key);
-        //       });
-        //       return result;
-        //     };
-        //   };
-
-        //   return group(obj, value, context, function(result, key, value) {
-        //     result[key] = value;
-        //   });
-        // };
+        var e = {"currentTarget": {"value":"ticket"}};
+        this.onTypeChanged(e); // renders the options for the type
       }
     },
 
@@ -141,7 +127,9 @@
           options_html = '';
       switch (type) {
         case "ticket":
-          options_html = this.renderTemplate("ticket_options");
+          options_html = this.renderTemplate("ticket_options", {
+            customFields: this.allCustomFields
+          });
         break;
         case "topic":
           options_html = this.renderTemplate("topic_options");
@@ -160,13 +148,6 @@
       this.$("div.type_options").html(options_html);
 
     },
-    // onGroupChanged: function() {
-    //   this.group = '';
-    // },
-    // onAssigneeChanged: function() {
-    //   this.assignee = '';
-    // },
-
     onAddFilterClicked: function(e) {
       if (e) {e.preventDefault();}
       // render various filters
@@ -183,84 +164,87 @@
       this.$('div.results').html('');
       var string = this.$('input.string').val();
       // this is where we add filters before searching on /incremental
-      var type = this.$('select.type').val();
+      var type = this.$('form.main_search select.type').val();
       this.type = type;
       var filter_string = '';
       switch (type) {
-        case "ticket":
+        case "ticket"://if searching for tickets
 
           var status_operator = '';
-          if(this.$('select.status_operator').val() == 'greater') {
+          if(this.$('form.ticket_filters select.status_operator').val() == 'greater') {
             status_operator = '>';
-          } else if (this.$('select.status_operator').val() == 'less') {
+          } else if (this.$('form.ticket_filters select.status_operator').val() == 'less') {
             status_operator = '<';
-          } else if (this.$('select.status_operator').val() == ':') {
+          } else if (this.$('form.ticket_filters select.status_operator').val() == ':') {
             status_operator = ':';
           }
           var priority_operator = '';
-          if(this.$('select.priority_operator').val() == 'greater') {
+          if(this.$('form.ticket_filters select.priority_operator').val() == 'greater') {
             priority_operator = '>';
-          } else if (this.$('select.priority_operator').val() == 'less') {
+          } else if (this.$('form.ticket_filters select.priority_operator').val() == 'less') {
             priority_operator = '<';
-          } else if (this.$('select.priority_operator').val() == ':') {
+          } else if (this.$('form.ticket_filters select.priority_operator').val() == ':') {
             priority_operator = ':';
           }
           var date_operator = '';
-          if(this.$('select.date_operator').val() == 'greater') {
+          if(this.$('form.ticket_filters select.date_operator').val() == 'greater') {
             date_operator = '>';
-          } else if (this.$('select.date_operator').val() == 'less') {
+          } else if (this.$('form.ticket_filters select.date_operator').val() == 'less') {
             date_operator = '<';
-          } else if (this.$('select.date_operator').val() == ':') {
+          } else if (this.$('form.ticket_filters select.date_operator').val() == ':') {
             date_operator = ':';
           }
           var ticket_filters = {
-            "status": status_operator + this.$('select.status_value').val(),
-            "ticket_type": this.$('select.ticket_type').val(),
-            "priority": priority_operator + this.$('select.priority_value').val(),
-            "date": this.$('select.date_type').val() + date_operator + this.$('input.date_value').val(),
-            "group": this.$('input.group').val(),
-            "assignee": this.$('input.assignee').val(),
-            "submitter": this.$('input.submitter').val(),
-            "organization": this.$('input.organization').val(),
-            "requester": this.$('input.requester').val(),
-            "commenter": this.$('input.commenter').val(),
-            "cc": this.$('input.cc').val(),
-            "subject": this.$('input.subject').val(),
-            "description": this.$('input.description').val(),
-            "tags": this.$('input.tags').val(), //.split(/\W/)
-            "via": this.$('select.via').val()
+            "status": status_operator + this.$('form.ticket_filters select.status_value').val(),
+            "ticket_type": this.$('form.ticket_filters select.ticket_type').val(),
+            "priority": priority_operator + this.$('form.ticket_filters select.priority_value').val(),
+            "date": this.$('form.ticket_filters select.date_type').val() + date_operator + this.$('form.ticket_filters input.date_value').val(),
+            "group": this.$('form.ticket_filters input.group').val(),
+            "assignee": this.$('form.ticket_filters input.assignee').val(),
+            "submitter": this.$('form.ticket_filters input.submitter').val(),
+            "organization": this.$('form.ticket_filters input.organization').val(),
+            "requester": this.$('form.ticket_filters input.requester').val(),
+            "commenter": this.$('form.ticket_filters input.commenter').val(),
+            "cc": this.$('form.ticket_filters input.cc').val(),
+            "subject": this.$('form.ticket_filters input.subject').val(),
+            "description": this.$('form.ticket_filters input.description').val(),
+            "tags": this.$('form.ticket_filters input.tags').val(), //.split(/\W/)
+            "via": this.$('form.ticket_filters select.via').val()
           };
 
           // render a template to build the filters string
           filter_string = this.renderTemplate('ticket_filter_string', {
             filters: ticket_filters
           });
-
+          // console.log(ticket_filters);
           this.columns = {
-            type: true,
-            id: true,
-            subject: true,
-            group_id: true,
-            assignee_id: true,
-            requester_id: true,
-            status: true,
-            priority: true,
-            created_at: true,
-            updated_at: true,
+            type: this.$('form.ticket_columns .type').prop('checked'),
+            id: this.$('form.ticket_columns .id').prop('checked'),
+            subject: this.$('form.ticket_columns .subject').prop('checked'),
+            group: this.$('form.ticket_columns .group').prop('checked'),
+            assignee: this.$('form.ticket_columns .assignee').prop('checked'),
+            requester: this.$('form.ticket_columns .requester').prop('checked'),
+            status: this.$('form.ticket_columns .status').prop('checked'),
+            priority: this.$('form.ticket_columns .priority').prop('checked'),
+            created_at: this.$('form.ticket_columns .created').prop('checked'),
+            updated_at: this.$('form.ticket_columns .updated').prop('checked'),
 
-            external_id: false,
-            channel:  false,
-            description:  false,
-            recipient: false,
-            submitter_id: false,
-            organization_id: false,
-            collaborator_ids: false,
-            forum_topic_id: false,
-            problem_id: false,
-            has_incidents: false,
-            tags: false
+            external_id: this.$('form.ticket_columns .external_id').prop('checked'),
+            channel:  this.$('form.ticket_columns .channel').prop('checked'),
+            description:  this.$('form.ticket_columns .description').prop('checked'),
+            recipient: this.$('form.ticket_columns .recipient').prop('checked'),
+            submitter: this.$('form.ticket_columns .submitter').prop('checked'),
+            organization: this.$('form.ticket_columns .organization').prop('checked'),
+            collaborators: this.$('form.ticket_columns .collaborators').prop('checked'),
+            forum_topic: this.$('form.ticket_columns .forum_topic').prop('checked'),
+            problem_id: this.$('form.ticket_columns .problem_id').prop('checked'),
+            has_incidents: this.$('form.ticket_columns .has_incidents').prop('checked'),
+            tags: this.$('form.ticket_columns .tags').prop('checked'),
+
+            customFields: this.selectCustomFields()
           };
         break;
+        //  TODO add cases for other objects
       } // end switch
 
       //no matter the type...
@@ -281,6 +265,18 @@
         // make the request
         this.ajax('search', encodedQuery, sort_by, sort_order, page);
       }
+    },
+    selectCustomFields: function() {
+      var that = this;
+      var allCustomFields = this.allCustomFields;
+      var selected = this.$('.custom_field_options input').map(function () {
+        if( that.$(this).prop('checked') ) {return that.$(this).attr('data-field-option-id');}
+      });
+      selected = _.toArray(selected);
+      var columns = _.filter(allCustomFields, function(cf) {
+        return _.contains(selected, cf.id.toString());
+      });
+      return columns;
     },
     onPrevClicked: function(e) {
       e.preventDefault();
@@ -317,7 +313,6 @@
         }
         this.numberOfResults = response.count;
       }
-
       var results = this.results;
       if(results.length === 0) {
         this.$("span.loading").hide();
@@ -328,18 +323,15 @@
       // massage the data...
       _.each(results, function(result, n) {
         // store user IDs
-         // TODO add each collaborator_ids
         var last;
         if(results.length == n+1) {
           last = true;
         } else {
           last = false;
         }
-        console.log('Last? ' + last);
-        this.addUsers([result.assignee_id, result.requester_id, result.submitter_id], last);
-        // this.addUsers(result.collaborator_ids, last);
-        
-        
+        // console.log('Last? ' + last);
+        var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
+        this.addUsers(users, last);
       }.bind(this));
     },
     addUsers: function(ids, last) {
@@ -351,30 +343,35 @@
       if(this.userIDs.length >= 100 || last) {
         var userBatch = _.first(this.userIDs, 100);
         this.userIDs = _.rest(this.userIDs, 99);
-        console.log(userBatch);
+        // console.log(userBatch);
         this.ajax('getUsersBatch', userBatch).done(function(response) {
-          // 
-          // var users = this.indexBy(response.users, 'id');
           this.users = _.extend(this.users, response.users);
           if(last) {
-            console.log(this.users);
+            // console.log(this.users);
             // encode and render the results
             this.encodeResults(this.results);
-            
           }
         });
       }
     },
     encodeResults: function(results) {
       this.encoded = [];
+      var custom_fields = this.columns.customFields;
+      console.log(custom_fields);
+      var cfIDs = _.map(custom_fields, function(cf) {
+        return cf.id;
+      });
+      console.log(cfIDs);
       _.each(results, function(result, n) {
 
-        // format date
-        result.created_at = new Date(result.created_at);
-        result.created_at = result.created_at.toLocaleString();
+        result.custom_fields = _.filter(result.custom_fields, function(cf) {
+          return _.contains(cfIDs, cf.id);
+        });
 
-        result.updated_at = new Date(result.updated_at);
-        result.updated_at = result.updated_at.toLocaleString();
+        // format date
+        result.created_at = new Date(result.created_at).toLocaleString();
+        result.updated_at = new Date(result.updated_at).toLocaleString();
+        // result.updated_at = result.updated_at.toLocaleString();
 
         // look up users from unique array
         var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
@@ -390,8 +387,8 @@
           id: encodeURIComponent(result.id),
           subject: encodeURIComponent(result.subject),
           group_id: encodeURIComponent(result.group_id),
-          assignee_id: encodeURIComponent(_.find(this.users, function(user) { return user.id == result.assignee_id; }) || result.assignee_id),
-          requester_id: encodeURIComponent(this.users[result.requester_id] || result.requester_id),
+          assignee_id: encodeURIComponent(result.assignee || result.assignee_id),
+          requester_id: encodeURIComponent(result.requester || result.requester_id),
           status: encodeURIComponent(result.status),
           priority: encodeURIComponent(result.priority),
           created_at: encodeURIComponent(result.created_at),
@@ -407,27 +404,31 @@
           forum_topic_id:  encodeURIComponent(result.forum_topic_id),
           problem_id:  encodeURIComponent(result.problem_id),
           has_incidents:  encodeURIComponent(result.has_incidents),
-          tags:  encodeURIComponent(result.tags)
-
-          // TODO: + custom fields
+          tags:  encodeURIComponent(result.tags),
+          // encode custom field values (all of them) but NOT ids
+          custom_fields: _.map(result.custom_fields, function(cf) {
+            cf.value = encodeURIComponent(cf.value);
+            return cf;
+          })
         };
-
         //add status labels
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
 
       }.bind(this));
-      
+      console.log(results);
       // display results
       var results_html = this.renderTemplate('results', {
         results: results,
         encoded_results: this.encoded,
         count: this.numberOfResults,
         next_page: this.next_page,
-        prev_page: this.prev_page
+        prev_page: this.prev_page,
+        columns: this.columns
       });
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);
+
+      // debugger;
     }
   };
-
 }());
