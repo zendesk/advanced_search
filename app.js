@@ -20,8 +20,11 @@
 
       // request events
       'search.done':'onSearchComplete',
+      // 'search.fail':'onSearchFail',
+
       'getUrl.done':'onSearchComplete',
       'getCustomTicketFields.done':'gotFields'
+
     },
     requests: {
       // searchIncremental: function(query, sort_by, sort_order, page) {
@@ -70,7 +73,7 @@
         this.$('span.loading').hide();
         this.$('span.no_results').hide();
         this.userIDs = [];
-        this.users = {};
+        this.users = [];
         this.allCustomFields = [];
         this.columns = {};
 
@@ -87,7 +90,7 @@
         // pagination done
         this.allCustomFields = _.filter(this.allCustomFields, function(cf) {
           return !_.contains(['subject', 'description', 'status',
-                                'tickettype', 'priority', 'group', 'assignee'], cf.type);
+                                'tickettype', 'priority', 'group', 'assignee'], cf.type) && cf.active;
         });
         //shortcut
         var e = {"currentTarget": {"value":"ticket"}};
@@ -329,7 +332,7 @@
         } else {
           last = false;
         }
-        // console.log('Last? ' + last);
+        console.log('Last? ' + last);
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
         this.addUsers(users, last);
       }.bind(this));
@@ -342,10 +345,12 @@
 
       if(this.userIDs.length >= 100 || last) {
         var userBatch = _.first(this.userIDs, 100);
+        console.log(userBatch);
         this.userIDs = _.rest(this.userIDs, 99);
         // console.log(userBatch);
         this.ajax('getUsersBatch', userBatch).done(function(response) {
-          this.users = _.extend(this.users, response.users);
+          console.log(response.users);
+          this.users = this.users.concat(response.users);
           if(last) {
             // console.log(this.users);
             // encode and render the results
@@ -357,15 +362,26 @@
     encodeResults: function(results) {
       this.encoded = [];
       var custom_fields = this.columns.customFields;
-      console.log(custom_fields);
+      console.log(this.users);
       var cfIDs = _.map(custom_fields, function(cf) {
         return cf.id;
       });
-      console.log(cfIDs);
+      // console.log(cfIDs);
       _.each(results, function(result, n) {
-
+        // filter the custom field result set down to the selected columns
         result.custom_fields = _.filter(result.custom_fields, function(cf) {
           return _.contains(cfIDs, cf.id);
+        });
+
+        // decode multiline fields
+        result.custom_fields = _.map(result.custom_fields, function(cf) {
+          var field = _.find(custom_fields, function(f) { return f.id == cf.id; });
+          
+          if(field.type == 'textarea') {
+            cf.value = decodeURIComponent(cf.value);
+            console.log(cf.value);
+          }
+          return cf;
         });
 
         // format date
@@ -375,11 +391,20 @@
 
         // look up users from unique array
         var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
+        // TODO fix the TypeError here
           requester = _.find(this.users, function(user) { return user.id == result.requester_id; });
 
         // replace user ids w/ names
-        result.assignee = assignee.name;
-        result.requester = requester.name;
+        if(assignee) {
+          result.assignee = assignee.name;
+        } else {
+          result.assignee = result.assignee_id;
+        }
+        if(requester) {
+          result.requester = requester.name;
+        } else {
+          result.requester = result.requester_id;
+        }
 
         // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
         this.encoded[n] = {
