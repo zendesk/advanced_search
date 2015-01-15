@@ -61,7 +61,7 @@
         <td>{{group_id}}</td>
       {{/if}}
       {{#if ../columns.assignee}}
-        <td><a href="#/users/{{assignee_id}}">{{assignee}}</td>
+        <td><a href="#/users/{{assignee_id}}">{{assignee}}</a></td>
       {{/if}}
       {{#if ../columns.status}}
         <td>{{{status_label}}}</td>
@@ -92,13 +92,13 @@
         <td>{{recipient}}</td>
       {{/if}}
       {{#if ../columns.submitter}}
-        <td>{{submitter}}</td>
+        <td><a href="#/users/{{submitter_id}}">{{submitter}}</a></td>
       {{/if}}
       {{#if ../columns.organization}}
         <td>{{organization}}</td>
       {{/if}}
       {{#if ../columns.collaborators}}
-        <td>{{collaborators}}</td>
+        <td>{{#each collaborators}}<a href="#/users/{{this.id}}">{{this.name}}</a>{{#unless @last}}, {{/unless}}{{/each}}</td>
       {{/if}}
       {{#if ../columns.forum_topic}}
         <td>{{forum_topic}}</td>
