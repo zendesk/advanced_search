@@ -63,10 +63,10 @@
     <input class="group"></input>
     <br>
     <label>Organization</label><br>
-    <input class="organization"></input>
+    <input id="organization" class="organization"></input>
     <br>
     <label>Commenter</label><br>
-    <input class="commenter"></input>
+    <input id="commenter" class="commenter user"></input>
     <br>
     <label>Subject</label><br>
     <input class="subject"></input>
@@ -79,13 +79,13 @@
 {{!-- column 2 --}}
   <div class="column column_2">
     <label>Assignee</label><br>
-    <input class="assignee"></input>
+    <input id="assignee" class="assignee user"></input>
     <br>
     <label>Requester</label><br>
-    <input class="requester"></input>
+    <input id="requester" class="requester user"></input>
     <br>
     <label>CC</label><br>
-    <input class="cc"></input>
+    <input id="cc" class="cc user"></input>
     <br>
     <label>Description</label><br>
     <input class="description"></input>
@@ -115,27 +115,27 @@
   <h4>Columns</h4>
   <div>
     <h5>System Attributes</h5>
-    <input type="checkbox" checked class="column_check id"> ID </input>
-    <input type="checkbox" checked class="column_check type"> Type </input>
-    <input type="checkbox" checked class="column_check subject"> Subject </input>
-    <input type="checkbox" checked class="column_check group"> Group </input>
-    <input type="checkbox" checked class="column_check assignee"> Assignee </input>
-    <input type="checkbox" checked class="column_check requester"> Requester </input>
-    <input type="checkbox" checked class="column_check status"> Status </input>
-    <input type="checkbox" checked class="column_check priority"> Priority </input>
-    <input type="checkbox" checked class="column_check created"> Created at </input>
+    <input type="checkbox" checked class="column_check id"> ID </input>|
+    <input type="checkbox" checked class="column_check type"> Type </input>|
+    <input type="checkbox" checked class="column_check subject"> Subject </input>|
+    <input type="checkbox" checked class="column_check group"> Group </input>|
+    <input type="checkbox" checked class="column_check assignee"> Assignee </input>|
+    <input type="checkbox" checked class="column_check requester"> Requester </input>|
+    <input type="checkbox" checked class="column_check status"> Status </input>|
+    <input type="checkbox" checked class="column_check priority"> Priority </input>|
+    <input type="checkbox" checked class="column_check created"> Created at </input>|
     <input type="checkbox" checked class="column_check updated"> Updated at </input>
     <br>
-    <input type="checkbox" class="column_check external_id"> External ID </input>
-    <input type="checkbox" class="column_check channel"> Channel </input>
-    <input type="checkbox" class="column_check description"> Description </input>
-    <input type="checkbox" class="column_check recipient"> Recipient address </input>
-    <input type="checkbox" class="column_check submitter"> Submitter </input>
-    <input type="checkbox" class="column_check organization"> Organization </input>
-    <input type="checkbox" class="column_check collaborators"> Collaborator(s) </input>
-    <input type="checkbox" class="column_check forum_topic"> Forum Topic </input>
-    <input type="checkbox" class="column_check problem_id"> Problem ID </input>
-    <input type="checkbox" class="column_check has_incidents"> Has Incidents? </input>
+    <input type="checkbox" class="column_check external_id"> External ID </input>|
+    <input type="checkbox" class="column_check channel"> Channel </input>|
+    <input type="checkbox" class="column_check description"> Description </input>|
+    <input type="checkbox" class="column_check recipient"> Recipient address </input>|
+    <input type="checkbox" class="column_check submitter"> Submitter </input>|
+    <input type="checkbox" class="column_check organization"> Organization </input>|
+    <input type="checkbox" class="column_check collaborators"> Collaborator(s) </input>|
+    <input type="checkbox" class="column_check forum_topic"> Forum Topic </input>|
+    <input type="checkbox" class="column_check problem_id"> Problem ID </input>|
+    <input type="checkbox" class="column_check has_incidents"> Has Incidents? </input>|
     <input type="checkbox" class="column_check tags"> Tags </input>
   </div>
   <br>
@@ -143,7 +143,7 @@
   <div class="custom_field_options">
     {{!-- insert custom field checkboxes here --}}
     {{#each customFields}}
-      <input type="checkbox" data-field-option-id="{{id}}"> {{title}} </input>
+      <span class="no_wrap"><input type="checkbox" data-field-option-id="{{id}}"> {{title}} </input>{{#unless @last}}|{{/unless}}</span>
     {{/each}}
 
   </div>

@@ -5,6 +5,8 @@
       'app.activated':'loadSettings',
       'pane.activated':'onPaneActivated',
 
+      'keyup input.user':'findUsers',
+
       // 'keyup input.string':'onTextEntered',
       // 'change select.dateType':'onDateTypeChanged',
       // 'change input.startDate':'onStartDateChanged',
@@ -32,6 +34,11 @@
       //     url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
       //   };
       // },
+      autocompleteUsers: function(name) {
+        return {
+          url: '/api/v2/users/autocomplete.json?name=' + name
+        };
+      },
       search: function(query, sort_by, sort_order, page) {
         return {
           url: helpers.fmt('/api/v2/search.json?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
@@ -149,8 +156,15 @@
       }
       //inject additional options
       this.$("div.type_options").html(options_html);
-
+      // autocomplete ticket options
+      var userFields = ["assignee","requester","submitter","cc","commenter"];
+      _.each(userFields, function(title) {
+        this.$('input.' + title).autocomplete({
+          minLength: 0
+        });
+      }, this);
     },
+
     onAddFilterClicked: function(e) {
       if (e) {e.preventDefault();}
       // render various filters
@@ -160,19 +174,43 @@
       if (e) {e.preventDefault();}
       //grab the selection and render the additional filter UI
       //use a global variable to track the number of these filters rendered, and give them an ID to indicate?
+    },
+
+    findUsers: function(e) {
+      var name = e.currentTarget.value;
+      var encodedQuery = encodeURIComponent(name);
+      this.ajax('autocompleteUsers', encodedQuery).done(function(response) {
+        var users = _.map(response.users, function(user) {
+          return {
+            label: user.name + " | " + user.email,
+            value: user.email || user.id
+          };
+        });
+        console.log(users);
+        this.$('input#' + e.currentTarget.id).autocomplete({
+          source: users
+        });
+      });
+    },
+    findOrgs: function() {
 
     },
+    foundOrgs: function(response) {
+      var organizations = response.organizations;
+
+      console.log("organizations");
+      console.log(organizations);
+    },
+
     onSearchClicked: function(e) {
       if (e) {e.preventDefault();}
       this.$('div.results').html('');
-      var string = this.$('input.string').val();
-      // this is where we add filters before searching on /incremental
-      var type = this.$('form.main_search select.type').val();
+      var string = this.$('input.string').val(),
+        type = this.$('form.main_search select.type').val();
       this.type = type;
       var filter_string = '';
       switch (type) {
         case "ticket"://if searching for tickets
-
           var status_operator = '';
           if(this.$('form.ticket_filters select.status_operator').val() == 'greater') {
             status_operator = '>';
@@ -249,7 +287,6 @@
         break;
         //  TODO add cases for other objects
       } // end switch
-
       //no matter the type...
       this.results = [];
       var query = string + filter_string + ' type:' + type,
@@ -262,18 +299,16 @@
         var encodedQuery = encodeURIComponent(query);
         // store the query globally
         this.encodedQuery = encodedQuery;
-        
         this.$("span.no_results").hide();
         this.$("span.loading").show();
         // make the request
         this.ajax('search', encodedQuery, sort_by, sort_order, page);
       }
-      
     },
     selectCustomFields: function() {
-      var that = this;
-      var allCustomFields = this.allCustomFields;
-      var selected = this.$('.custom_field_options input').map(function () {
+      var that = this,
+        allCustomFields = this.allCustomFields,
+        selected = this.$('.custom_field_options input').map(function () {
         if( that.$(this).prop('checked') ) {return that.$(this).attr('data-field-option-id');}
       });
       selected = _.toArray(selected);
@@ -328,12 +363,8 @@
       _.each(results, function(result, n) {
         // store user IDs
         var last;
-        if(results.length == n+1) {
-          last = true;
-        } else {
-          last = false;
-        }
-        // console.log('Last? ' + last);
+        if(results.length == n+1) {last = true;}
+        else {last = false;}
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
         this.addUsers(users, last);
       }.bind(this));
@@ -343,69 +374,57 @@
         this.userIDs.push(id);
       }.bind(this));
       this.userIDs = _.filter(_.uniq(this.userIDs), Boolean);
-
       if(this.userIDs.length >= 100 || last) {
         var userBatch = _.first(this.userIDs, 100);
-        // console.log(userBatch);
         this.userIDs = _.rest(this.userIDs, 99);
-        // console.log(userBatch);
         this.ajax('getUsersBatch', userBatch).done(function(response) {
-          // console.log(response.users);
           this.users = this.users.concat(response.users);
           _.defer(function(){
-            console.log("deferred ran");
             this.encodeResults(this.results);
           }.bind(this));
         });
       }
-
     },
     encodeResults: function(results) {
       this.encoded = [];
       var custom_fields = this.columns.customFields;
-      // console.log(this.users);
       var cfIDs = _.map(custom_fields, function(cf) {
         return cf.id;
       });
-      // console.log(cfIDs);
       _.each(results, function(result, n) {
         // filter the custom field result set down to the selected columns
         result.custom_fields = _.filter(result.custom_fields, function(cf) {
           return _.contains(cfIDs, cf.id);
         });
-
-        // decode multiline fields
         result.custom_fields = _.map(result.custom_fields, function(cf) {
           var field = _.find(custom_fields, function(f) { return f.id == cf.id; });
-          
+          // decode multiline fields
           if(field.type == 'textarea') {
             cf.value = decodeURIComponent(cf.value);
             // console.log(cf.value);
           }
           return cf;
         });
-
-        // format date
+        // format dates
         result.created_at = new Date(result.created_at).toLocaleString();
         result.updated_at = new Date(result.updated_at).toLocaleString();
-        // result.updated_at = result.updated_at.toLocaleString();
-
         // look up users from unique array
         var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
-        // TODO fix the TypeError here
-          requester = _.find(this.users, function(user) { return user.id == result.requester_id; });
+          requester = _.find(this.users, function(user) { return user.id == result.requester_id; }),
+          submitter = _.find(this.users, function(user) { return user.id == result.submitter_id; });
 
+        var collaborators = _.map(result.collaborator_ids, function(id) {
+          return _.find(this.users, function(user) { return user.id == id; });
+        }, this);
         // replace user ids w/ names
-        if(assignee) {
-          result.assignee = assignee.name;
-        } else {
-          result.assignee = result.assignee_id;
-        }
-        if(requester) {
-          result.requester = requester.name;
-        } else {
-          result.requester = result.requester_id;
-        }
+        if(assignee) {result.assignee = assignee.name;}
+        else {result.assignee = result.assignee_id;}
+        if(requester) {result.requester = requester.name;}
+        else {result.requester = result.requester_id;}
+        if(submitter) {result.submitter = submitter.name;}
+        else {result.submitter = result.submitter_id;}
+        if(collaborators) {result.collaborators = collaborators;}
+
 
         // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
         this.encoded[n] = {
@@ -413,8 +432,8 @@
           id: encodeURIComponent(result.id),
           subject: encodeURIComponent(result.subject),
           group_id: encodeURIComponent(result.group_id),
-          assignee_id: encodeURIComponent(result.assignee || result.assignee_id),
-          requester_id: encodeURIComponent(result.requester || result.requester_id),
+          assignee_id: encodeURIComponent(result.assignee),
+          requester_id: encodeURIComponent(result.requester),
           status: encodeURIComponent(result.status),
           priority: encodeURIComponent(result.priority),
           created_at: encodeURIComponent(result.created_at),
@@ -424,14 +443,19 @@
           channel:  encodeURIComponent(result.via.channel),
           description:  encodeURIComponent(result.description),
           recipient:  encodeURIComponent(result.recipient),
-          submitter_id: encodeURIComponent(result.submitter_id),
+          submitter: encodeURIComponent(result.submitter),
           organization_id:  encodeURIComponent(result.organization_id),
-          collaborator_ids:  encodeURIComponent(result.collaborator_ids),
+          // collaborators:  encodeURIComponent(result.collaborators), // TODO iterate over these
           forum_topic_id:  encodeURIComponent(result.forum_topic_id),
           problem_id:  encodeURIComponent(result.problem_id),
           has_incidents:  encodeURIComponent(result.has_incidents),
           tags:  encodeURIComponent(result.tags),
+
+          collaborators: _.map(result.collaborators, function(cc) {
+            return encodeURIComponent(cc.name);
+          }),
           // encode custom field values (all of them) but NOT ids
+
           custom_fields: _.map(result.custom_fields, function(cf) {
             cf.value = encodeURIComponent(cf.value);
             return cf;
@@ -441,7 +465,6 @@
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
 
       }.bind(this));
-      // console.log(results);
       // display results
       var results_html = this.renderTemplate('results', {
         results: results,
@@ -453,8 +476,6 @@
       });
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);
-
-      // debugger;
     }
   };
 }());

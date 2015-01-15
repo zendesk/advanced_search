@@ -16,3 +16,6 @@ input {
 .results-well {
   overflow: scroll;
 }
+.no_wrap {
+  white-space: nowrap;
+}
