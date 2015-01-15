@@ -266,8 +266,13 @@
         this.$("span.no_results").hide();
         this.$("span.loading").show();
         // make the request
-        this.ajax('search', encodedQuery, sort_by, sort_order, page);
+        var $promise = this.ajax('search', encodedQuery, sort_by, sort_order, page);
+        $promise.done(function() {
+          console.log("promise fulfilled");
+          this.encodeResults(this.results);
+        });
       }
+      
     },
     selectCustomFields: function() {
       var that = this;
@@ -354,10 +359,15 @@
           if(last) {
             // console.log(this.users);
             // encode and render the results
-            this.encodeResults(this.results);
+            // this.encodeResults(this.results);
           }
+          _.defer(function(){
+            console.log("deferred ran");
+            this.encodeResults(this.results);
+          }.bind(this));
         });
       }
+
     },
     encodeResults: function(results) {
       this.encoded = [];
