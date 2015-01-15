@@ -12,3 +12,7 @@ input {
   float: left;
   margin-right: 20px;
 }
+
+.results-well {
+  overflow: scroll;
+}

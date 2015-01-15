@@ -1,20 +1,39 @@
-<h3>Results ({{count}}) <a href="data:text/csv;charset=utf-8,id%2CSubject%2CGroup%2CAssignee%2CStatus%2CType%2CPriority%2CCreated%2CUpdated%0A{{#encoded_results}}{{id}}%2C%22{{subject}}%22%2C{{group_id}}%2C{{assignee_id}}%2C{{status}}%2C{{type}}%2C{{priority}}%2C{{created_at}}%2C{{updated_at}}%0A{{/encoded_results}}" download="results.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3>
+<h3>Results ({{count}}) <a href="data:text/csv;charset=utf-8,id{{#if columns.subject}}%2CSubject{{/if}}{{#if columns.requester}}%2CRequester{{/if}}{{#if columns.group}}%2CGroup{{/if}}{{#if columns.assignee}}%2CAssignee{{/if}}{{#if columns.status}}%2CStatus{{/if}}{{#if columns.type}}%2CType{{/if}}{{#if columns.priority}}%2CPriority{{/if}}{{#if columns.created_at}}%2CCreated{{/if}}{{#if columns.updated_at}}%2CUpdated{{/if}}{{#if columns.external_id}}%2CExternal_ID{{/if}}{{#if columns.channel}}%2CChannel{{/if}}{{#if columns.description}}%2CDescription{{/if}}{{#if columns.recipient}}%2CRecipient{{/if}}{{#if columns.submitter}}%2CSubmitter{{/if}}{{#if columns.organization}}%2COrganization{{/if}}{{#if columns.collaborators}}%2CCCs{{/if}}{{#if columns.forum_topic}}%2CTopic{{/if}}{{#if columns.problem_id}}%2CProblem{{/if}}{{#if columns.has_incidents}}%2CIncidents{{/if}}{{#if columns.tags}}%2CTags{{/if}}{{#each columns.customFields}}%2C{{title}}{{/each}}%0A{{#encoded_results}}{{id}}{{#if ../columns.subject}}%2C%22{{subject}}%22{{/if}}{{#if ../columns.requester}}%2C%22{{requester_id}}%22{{/if}}{{#if ../columns.group}}%2C{{group_id}}{{/if}}{{#if ../columns.assignee}}%2C{{assignee_id}}{{/if}}{{#if ../columns.status}}%2C{{status}}{{/if}}{{#if ../columns.type}}%2C{{type}}{{/if}}{{#if ../columns.priority}}%2C{{priority}}{{/if}}{{#if ../columns.created_at}}%2C%22{{created_at}}%22{{/if}}{{#if ../columns.updated_at}}%2C%22{{updated_at}}%22{{/if}}{{#if ../columns.external_id}}%2C%22{{external_id}}%22{{/if}}{{#if ../columns.channel}}%2C%22{{channel}}%22{{/if}}{{#if ../columns.description}}%2C%22{{description}}%22{{/if}}{{#if ../columns.recipient}}%2C%22{{recipient}}%22{{/if}}{{#if ../columns.submitter}}%2C%22{{submitter}}%22{{/if}}{{#if ../columns.organization}}%2C{{organization}}{{/if}}{{#if ../columns.collaborators}}%2C%22{{collaborators}}%22{{/if}}{{#if ../columns.forum_topic}}%2C{{forum_topic}}{{/if}}{{#if ../columns.problem_id}}%2C{{problem_id}}{{/if}}{{#if ../columns.has_incidents}}%2C{{has_incidents}}{{/if}}{{#if ../columns.tags}}%2C%22{{tags}}%22{{/if}}{{#each custom_fields}}%2C%22{{value}}%22{{/each}}%0A{{/encoded_results}}" download="results.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3>
 
 <br>
-<div class="well">
+<div class="well results-well">
 <table class="table">
   <thead>
     {{!-- if result_type == ticket --}}
     <th>
-      <td>ID</td>
-      <td>Subject</td>
-      <td>Group</td>
-      <td>Assignee</td>
-      <td>Status</td>
-      <td>Type</td>
-      <td>Priority</td>
-      <td>Created</td>
-      <td>Updated</td>
+      {{#if columns.id}}<td>ID</td>{{/if}}
+      {{#if columns.subject}}<td>Subject</td>{{/if}}
+      {{#if columns.requester}}<td>Requester</td>{{/if}}
+      {{#if columns.group}}<td>Group</td>{{/if}}
+      {{#if columns.assignee}}<td>Assignee</td>{{/if}}
+      {{#if columns.status}}<td>Status</td>{{/if}}
+      {{#if columns.type}}<td>Type</td>{{/if}}
+      {{#if columns.priority}}<td>Priority</td>{{/if}}
+      {{#if columns.created_at}}<td>Created</td>{{/if}}
+      {{#if columns.updated_at}}<td>Updated</td>{{/if}}
+
+      {{#if columns.external_id}}<td>External ID</td>{{/if}}
+      {{#if columns.channel}}<td>Channel</td>{{/if}}
+      {{#if columns.description}}<td>Description</td>{{/if}}
+      {{#if columns.recipient}}<td>Recipient Address</td>{{/if}}
+      {{#if columns.submitter}}<td>Submitter</td>{{/if}}
+      {{#if columns.organization}}<td>Organization</td>{{/if}}
+      {{#if columns.collaborators}}<td>CCs</td>{{/if}}
+      {{#if columns.forum_topic}}<td>Linked Topic</td>{{/if}}
+      {{#if columns.problem_id}}<td>Linked Problem</td>{{/if}}
+      {{#if columns.has_incidents}}<td>Has Incidents?</td>{{/if}}
+      {{#if columns.tags}}<td>Tags</td>{{/if}}
+
+      {{#each columns.customFields}}
+      {{!-- prints the custom field's ID as a column --}}
+        <td>{{title}}</td>
+
+      {{/each}}
       
     </th>
     {{!-- if topic --}}
@@ -29,16 +48,79 @@
     {{!-- if ticket --}}
 
     <tr class="row">
-      <td><a href="#/tickets/{{id}}">{{id}}</a></td>
-      <td><a href="#/tickets/{{id}}">{{subject}}</a></td>
-      <td>{{group_id}}</td>
-      <td>{{assignee_id}}</td>
-      <td>{{{status_label}}}</td>
-      <td>{{#if type}}<span class="label">{{type}}</span>{{/if}}</td>
-      <td>{{priority}}</td>
-      <td>{{created_at}}</td>
-      <td>{{updated_at}}</td>
+      {{#if ../columns.id}}
+        <td><a href="#/tickets/{{id}}">{{id}}</a></td>
+      {{/if}}
+      {{#if ../columns.subject}}
+        <td><a href="#/tickets/{{id}}">{{subject}}</a></td>
+      {{/if}}
+      {{#if ../columns.requester}}
+        <td><a href="#/users/{{requester_id}}">{{requester}}</a></td>
+      {{/if}}
+      {{#if ../columns.group}}
+        <td>{{group_id}}</td>
+      {{/if}}
+      {{#if ../columns.assignee}}
+        <td><a href="#/users/{{assignee_id}}">{{assignee}}</td>
+      {{/if}}
+      {{#if ../columns.status}}
+        <td>{{{status_label}}}</td>
+      {{/if}}
+      {{#if ../columns.type}}
+        <td>{{#if type}}<span class="label">{{type}}</span>{{/if}}</td>
+      {{/if}}
+      {{#if ../columns.priority}}
+        <td>{{priority}}</td>
+      {{/if}}
+      {{#if ../columns.created_at}}
+        <td>{{created_at}}</td>
+      {{/if}}
+      {{#if ../columns.updated_at}}
+        <td>{{updated_at}}</td>
+      {{/if}}
+
+      {{#if ../columns.external_id}}
+        <td>{{external_id}}</td>
+      {{/if}}
+      {{#if ../columns.channel}}
+        <td>{{channel}}</td>
+      {{/if}}
+      {{#if ../columns.description}}
+        <td>{{description}}</td>
+      {{/if}}
+      {{#if ../columns.recipient}}
+        <td>{{recipient}}</td>
+      {{/if}}
+      {{#if ../columns.submitter}}
+        <td>{{submitter}}</td>
+      {{/if}}
+      {{#if ../columns.organization}}
+        <td>{{organization}}</td>
+      {{/if}}
+      {{#if ../columns.collaborators}}
+        <td>{{collaborators}}</td>
+      {{/if}}
+      {{#if ../columns.forum_topic}}
+        <td>{{forum_topic}}</td>
+      {{/if}}
+      {{#if ../columns.problem_id}}
+        <td>{{problem_id}}</td>
+      {{/if}}
+      {{#if ../columns.has_incidents}}
+        <td>{{has_incidents}}</td>
+      {{/if}}
+      {{#if ../columns.tags}}
+        <td>{{tags}}</td>
+      {{/if}}
+
+      {{#if ../columns.customFields}}
+        {{#each custom_fields}}
+          {{!-- prints the custom fields as a column --}}
+          <td>{{value}}</td>
+        {{/each}}
+      {{/if}}
     </tr>
+
     {{!-- if topic --}}
 
     {{!-- if user --}}

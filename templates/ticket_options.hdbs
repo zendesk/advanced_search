@@ -1,4 +1,4 @@
-<form class="ticket_options form-inline well">
+<form class="ticket_options ticket_filters form-inline well">
   <label>Status </label>
   <select class="status_operator">
     <option></option>
@@ -106,5 +106,45 @@
       <option value="sms">sms</option>
       <option value="logmein">logmein</option>
     </select>
+  </div>
+
+
+</form>
+
+<form class="ticket_columns form-inline well">
+  <h4>Columns</h4>
+  <div>
+    <h5>System Attributes</h5>
+    <input type="checkbox" checked class="column_check id"> ID </input>
+    <input type="checkbox" checked class="column_check type"> Type </input>
+    <input type="checkbox" checked class="column_check subject"> Subject </input>
+    <input type="checkbox" checked class="column_check group"> Group </input>
+    <input type="checkbox" checked class="column_check assignee"> Assignee </input>
+    <input type="checkbox" checked class="column_check requester"> Requester </input>
+    <input type="checkbox" checked class="column_check status"> Status </input>
+    <input type="checkbox" checked class="column_check priority"> Priority </input>
+    <input type="checkbox" checked class="column_check created"> Created at </input>
+    <input type="checkbox" checked class="column_check updated"> Updated at </input>
+    <br>
+    <input type="checkbox" class="column_check external_id"> External ID </input>
+    <input type="checkbox" class="column_check channel"> Channel </input>
+    <input type="checkbox" class="column_check description"> Description </input>
+    <input type="checkbox" class="column_check recipient"> Recipient address </input>
+    <input type="checkbox" class="column_check submitter"> Submitter </input>
+    <input type="checkbox" class="column_check organization"> Organization </input>
+    <input type="checkbox" class="column_check collaborators"> Collaborator(s) </input>
+    <input type="checkbox" class="column_check forum_topic"> Forum Topic </input>
+    <input type="checkbox" class="column_check problem_id"> Problem ID </input>
+    <input type="checkbox" class="column_check has_incidents"> Has Incidents? </input>
+    <input type="checkbox" class="column_check tags"> Tags </input>
+  </div>
+  <br>
+  <h5>Custom Fields</h5>
+  <div class="custom_field_options">
+    {{!-- insert custom field checkboxes here --}}
+    {{#each customFields}}
+      <input type="checkbox" data-field-option-id="{{id}}"> {{title}} </input>
+    {{/each}}
+
   </div>
 </form>
