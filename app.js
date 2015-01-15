@@ -350,17 +350,12 @@
 
       if(this.userIDs.length >= 100 || last) {
         var userBatch = _.first(this.userIDs, 100);
-        console.log(userBatch);
+        // console.log(userBatch);
         this.userIDs = _.rest(this.userIDs, 99);
         // console.log(userBatch);
         this.ajax('getUsersBatch', userBatch).done(function(response) {
-          console.log(response.users);
+          // console.log(response.users);
           this.users = this.users.concat(response.users);
-          if(last) {
-            // console.log(this.users);
-            // encode and render the results
-            // this.encodeResults(this.results);
-          }
           _.defer(function(){
             console.log("deferred ran");
             this.encodeResults(this.results);
