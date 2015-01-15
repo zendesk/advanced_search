@@ -266,11 +266,7 @@
         this.$("span.no_results").hide();
         this.$("span.loading").show();
         // make the request
-        var $promise = this.ajax('search', encodedQuery, sort_by, sort_order, page);
-        $promise.done(function() {
-          console.log("promise fulfilled");
-          this.encodeResults(this.results);
-        });
+        this.ajax('search', encodedQuery, sort_by, sort_order, page);
       }
       
     },
@@ -337,7 +333,7 @@
         } else {
           last = false;
         }
-        console.log('Last? ' + last);
+        // console.log('Last? ' + last);
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
         this.addUsers(users, last);
       }.bind(this));
@@ -367,7 +363,7 @@
     encodeResults: function(results) {
       this.encoded = [];
       var custom_fields = this.columns.customFields;
-      console.log(this.users);
+      // console.log(this.users);
       var cfIDs = _.map(custom_fields, function(cf) {
         return cf.id;
       });
@@ -384,7 +380,7 @@
           
           if(field.type == 'textarea') {
             cf.value = decodeURIComponent(cf.value);
-            console.log(cf.value);
+            // console.log(cf.value);
           }
           return cf;
         });
@@ -445,7 +441,7 @@
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
 
       }.bind(this));
-      console.log(results);
+      // console.log(results);
       // display results
       var results_html = this.renderTemplate('results', {
         results: results,
