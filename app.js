@@ -287,6 +287,7 @@
         break;
         //  TODO add cases for other objects
       } // end switch
+      
       //no matter the type...
       this.results = [];
       var query = string + filter_string + ' type:' + type,
@@ -445,7 +446,6 @@
           recipient:  encodeURIComponent(result.recipient),
           submitter: encodeURIComponent(result.submitter),
           organization_id:  encodeURIComponent(result.organization_id),
-          // collaborators:  encodeURIComponent(result.collaborators), // TODO iterate over these
           forum_topic_id:  encodeURIComponent(result.forum_topic_id),
           problem_id:  encodeURIComponent(result.problem_id),
           has_incidents:  encodeURIComponent(result.has_incidents),
@@ -455,7 +455,6 @@
             return encodeURIComponent(cc.name);
           }),
           // encode custom field values (all of them) but NOT ids
-
           custom_fields: _.map(result.custom_fields, function(cf) {
             cf.value = encodeURIComponent(cf.value);
             return cf;

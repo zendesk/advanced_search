@@ -11,7 +11,7 @@
     <option value="new">new</option>
     <option value="open">open</option>
     <option value="pending">pending</option>
-    <option value="on-hold">on-hold</option>
+    <option value="hold">on-hold</option>
     <option value="solved">solved</option>
     <option value="closed">closed</option>
   </select>
