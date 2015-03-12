@@ -6,8 +6,8 @@
     "url": "https://github.com/jstjoe"
   },
   "defaultLocale": "en",
-  "private": true,
+  "private": false,
   "location": "nav_bar",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "frameworkVersion": "1.0"
 }
