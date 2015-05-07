@@ -1,5 +1,7 @@
+/*global Blob*/
+/*global URL*/
+/*global File*/
 (function() {
-
   return {
     events: {
       'app.activated':'loadSettings',
@@ -104,34 +106,6 @@
         this.onTypeChanged(e); // renders the options for the type
       }
     },
-
-    // onTextEntered: function() {
-    //   //for incremental search only
-    //   var string = this.$('input.string').val();
-    //   if (string.length >= 2) {
-    //     // this is where we add filters before searching on /incremental
-    //     var filters = '';
-    //     var query = filters + string,
-    //       sort_by = this.$('select.sort_by').val(),
-    //       sort_order = this.$('select.sort_order').val(),
-    //       page = '1';
-    //     var encodedQuery = encodeURIComponent(query);
-    //     this.ajax('searchIncremental',encodedQuery,sort_by,sort_order,page);
-    //     this.$("span.no_results").hide();
-    //   } else {
-    //     // ?
-    //   }
-    // },
-    // onDateTypeChanged: function() {
-    //   this.dateType = '';
-
-    // },
-    // onStartDateChanged: function() {
-    //   this.startDate = '';
-    // },
-    // onEndDateChanged: function() {
-    //   this.endDate = '';
-    // },
     onTypeChanged: function(e) {
       var type = e.currentTarget.value,
           options_html = '';
@@ -212,6 +186,7 @@
       switch (type) {
         case "ticket"://if searching for tickets
           var status_operator = '';
+          // TODO change to another switch
           if(this.$('form.ticket_filters select.status_operator').val() == 'greater') {
             status_operator = '>';
           } else if (this.$('form.ticket_filters select.status_operator').val() == 'less') {
@@ -310,8 +285,10 @@
       var that = this,
         allCustomFields = this.allCustomFields,
         selected = this.$('.custom_field_options input').map(function () {
-        if( that.$(this).prop('checked') ) {return that.$(this).attr('data-field-option-id');}
-      });
+          if( that.$(this).prop('checked') ) {
+            return that.$(this).attr('data-field-option-id');
+          }
+        });
       selected = _.toArray(selected);
       var columns = _.filter(allCustomFields, function(cf) {
         return _.contains(selected, cf.id.toString());
@@ -399,21 +376,24 @@
         });
         result.custom_fields = _.map(result.custom_fields, function(cf) {
           var field = _.find(custom_fields, function(f) { return f.id == cf.id; });
-          // decode multiline fields
+          // add flag to textarea fields (used in the template)
           if(field.type == 'textarea') {
-            cf.value = decodeURIComponent(cf.value);
-            // console.log(cf.value);
+            cf.textarea = true;
           }
           return cf;
         });
+        if(result.description) {
+          result.description = result.description.replace(/"/g, '\"\"');
+          console.log(result.description);
+        }
         // format dates
         result.created_at = new Date(result.created_at).toLocaleString();
         result.updated_at = new Date(result.updated_at).toLocaleString();
+
         // look up users from unique array
         var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
           requester = _.find(this.users, function(user) { return user.id == result.requester_id; }),
           submitter = _.find(this.users, function(user) { return user.id == result.submitter_id; });
-
         var collaborators = _.map(result.collaborator_ids, function(id) {
           return _.find(this.users, function(user) { return user.id == id; });
         }, this);
@@ -428,50 +408,59 @@
 
 
         // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
-        this.encoded[n] = {
-          type: encodeURIComponent(result.type),
-          id: encodeURIComponent(result.id),
-          subject: encodeURIComponent(result.subject),
-          group_id: encodeURIComponent(result.group_id),
-          assignee_id: encodeURIComponent(result.assignee),
-          requester_id: encodeURIComponent(result.requester),
-          status: encodeURIComponent(result.status),
-          priority: encodeURIComponent(result.priority),
-          created_at: encodeURIComponent(result.created_at),
-          updated_at: encodeURIComponent(result.updated_at),
+        // this.encoded[n] = {
+        //   type: encodeURIComponent(result.type),
+        //   id: encodeURIComponent(result.id),
+        //   subject: encodeURIComponent(result.subject),
+        //   group_id: encodeURIComponent(result.group_id),
+        //   assignee_id: encodeURIComponent(result.assignee),
+        //   requester_id: encodeURIComponent(result.requester),
+        //   status: encodeURIComponent(result.status),
+        //   priority: encodeURIComponent(result.priority),
+        //   created_at: encodeURIComponent(result.created_at),
+        //   updated_at: encodeURIComponent(result.updated_at),
 
-          external_id: encodeURIComponent(result.external_id),
-          channel:  encodeURIComponent(result.via.channel),
-          description:  encodeURIComponent(result.description),
-          recipient:  encodeURIComponent(result.recipient),
-          submitter: encodeURIComponent(result.submitter),
-          organization_id:  encodeURIComponent(result.organization_id),
-          forum_topic_id:  encodeURIComponent(result.forum_topic_id),
-          problem_id:  encodeURIComponent(result.problem_id),
-          has_incidents:  encodeURIComponent(result.has_incidents),
-          tags:  encodeURIComponent(result.tags),
+        //   external_id: encodeURIComponent(result.external_id),
+        //   channel:  encodeURIComponent(result.via.channel),
+        //   description:  encodeURIComponent(result.description),
+        //   recipient:  encodeURIComponent(result.recipient),
+        //   submitter: encodeURIComponent(result.submitter),
+        //   organization_id:  encodeURIComponent(result.organization_id),
+        //   forum_topic_id:  encodeURIComponent(result.forum_topic_id),
+        //   problem_id:  encodeURIComponent(result.problem_id),
+        //   has_incidents:  encodeURIComponent(result.has_incidents),
+        //   tags:  encodeURIComponent(result.tags),
 
-          collaborators: _.map(result.collaborators, function(cc) {
-            return encodeURIComponent(cc.name);
-          }),
-          // encode custom field values (all of them) but NOT ids
-          custom_fields: _.map(result.custom_fields, function(cf) {
-            cf.value = encodeURIComponent(cf.value);
-            return cf;
-          })
-        };
+        //   collaborators: _.map(result.collaborators, function(cc) {
+        //     return encodeURIComponent(cc.name);
+        //   }),
+        //   // encode custom field values (all of them) but NOT ids
+        //   custom_fields: _.map(result.custom_fields, function(cf) {
+        //     cf.value = encodeURIComponent(cf.value);
+        //     return cf;
+        //   })
+        // };
         //add status labels
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
 
       }.bind(this));
+      // create export
+      var data = this.renderTemplate('_tickets_export', {
+        tickets: results,
+        columns: this.columns
+      });
+      var file = new File([data], 'tickets.csv');
+      var url = URL.createObjectURL(file);
+
       // display results
       var results_html = this.renderTemplate('results', {
         results: results,
-        encoded_results: this.encoded,
+        // encoded_results: this.encoded,
         count: this.numberOfResults,
         next_page: this.next_page,
         prev_page: this.prev_page,
-        columns: this.columns
+        columns: this.columns,
+        download: url
       });
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);
