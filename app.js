@@ -3,31 +3,23 @@
     events: {
       'pane.activated':'onPaneActivated',
       'keyup input.user':'findUsers',
-      // 'keyup input.string':'onTextEntered',
-      // 'change select.dateType':'onDateTypeChanged',
-      // 'change input.startDate':'onStartDateChanged',
-      // 'change input.endDate':'onEndDateChanged',
       'change select.type':'onTypeChanged',
-      // 'change select.group':'onGroupChanged',
-      // 'change select.assignee':'onAssigneeChanged',
       'click button.addFilter':'onAddFilterClicked',
       'click button.search':'onSearchClicked',
       'click a.prev_page':'onPrevClicked',
       'click a.next_page':'onNextClicked',
-      // request events
-      'search.done':'onSearchComplete',
-      // 'search.fail':'onSearchFail',
-      'getUrl.done':'onSearchComplete',
+      // REQUEST CALLBACKS
+      'search.done':'onSearchSuccess',
+      'getUrl.done':'onSearchSuccess',
       'getCustomTicketFields.done':'setCustomFields'
-
     },
 
     requests: {
-      // searchIncremental: function(query, sort_by, sort_order, page) {
-      //   return {
-      //     url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
-      //   };
-      // },
+      searchIncremental: function(query, sort_by, sort_order, page) {
+        return {
+          url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
+        };
+      },
       autocompleteUsers: function(name) {
         return {
           url: '/api/v2/users/autocomplete.json?name=' + name
@@ -89,7 +81,7 @@
         });
 
         var e = {"currentTarget": {"value":"ticket"}};
-        this.onTypeChanged(e); // renders the options for the type
+        this.onTypeChanged(e);
       }
     },
 
@@ -129,15 +121,14 @@
     },
 
     onAddFilterClicked: function(e) {
-      if (e) {e.preventDefault();}
+      if (e) { e.preventDefault(); }
       // render various filters
-      //
     },
 
     onFilterSelected: function(e) {
-      if (e) {e.preventDefault();}
-      //grab the selection and render the additional filter UI
-      //use a global variable to track the number of these filters rendered, and give them an ID to indicate?
+      if (e) { e.preventDefault(); }
+      // grab the selection and render the additional filter UI
+      // use a global variable to track the number of these filters rendered, and give them an ID to indicate?
     },
 
     findUsers: function(e) {
@@ -150,7 +141,7 @@
             value: user.email || user.id
           };
         });
-        console.log(users);
+
         this.$('input#' + e.currentTarget.id).autocomplete({
           source: users
         });
@@ -270,7 +261,8 @@
         sort_order = this.$('select.sort_order').val(),
         page = '1';
 
-      console.log(query);
+      // remove linebreaks and spaces generated from the filter string template
+      query = query.replace(/(\r\n|\n|\r)/gm,"").replace(/ /,"");
 
       if (query.length < 2) {
         services.notify("A search query must have at least two characters.", "error");
@@ -314,12 +306,13 @@
       this.$("span.loading").show();
     },
 
-    onSearchComplete: function(response) {
-      var allPages = this.$('.all_pages').prop('checked');
+    onSearchSuccess: function(response) {
+      var displayAllPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
       var next_page, prev_page;
+      var that = this;
 
-      if (allPages && response.next_page) {
+      if (displayAllPages && response.next_page) {
         this.ajax('getUrl', response.next_page);
         return;
       } else {
@@ -334,20 +327,18 @@
         this.numberOfResults = response.count;
       }
 
-      var results = this.results;
-
-      if (results.length === 0) {
+      if (this.results.length === 0) {
         this.$("span.loading").hide();
         this.$('span.no_results').show();
         return;
       }
 
-      _.each(results, function(result, n) {
+      _.each(this.results, function(result, n) {
         var last;
-        if (results.length == n+1) {last = true;}
+        if (that.results.length == n+1) { last = true; }
         else {last = false;}
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
-        this.addUsers(users, last);
+        that.addUsers(users, last);
       }.bind(this));
     },
 

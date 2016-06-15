@@ -1,61 +1,61 @@
 {{#filters}}
   {{#if status}}
-    &nbps;status{{{status}}}
+    status{{{status}}}
   {{/if}}
-  
+
   {{#if ticket_type}} 
-    &nbsp;ticket_type:{{ticket_type}}
+    ticket_type:{{ticket_type}}
   {{/if}}
   
   {{#if priority}}
-    &nbsp;priority{{{priority}}}
+    priority{{{priority}}}
   {{/if}}
 
   {{#if date}}
-    &nbsp;{{{date}}}
+    {{{date}}}
   {{/if}}
 
   {{#if group}}
-    &nbsp;group:"{{group}}"
+    group:"{{group}}"
   {{/if}}
 
   {{#if assignee}}
-    &nbsp;assignee:"{{assignee}}"
+    assignee:"{{assignee}}"
   {{/if}}
 
   {{#if submitter}}
-    &nbsp;submitter:"{{submitter}}"
+    submitter:"{{submitter}}"
   {{/if}}
 
   {{#if organization}}
-    &nbsp;organization:"{{organization}}"
+    organization:"{{organization}}"
   {{/if}}
 
   {{#if requester}}
-    &nbsp;requester:"{{requester}}"
+    requester:"{{requester}}"
   {{/if}}
 
   {{#if commenter}}
-    &nbsp;commenter:"{{commenter}}"
+    commenter:"{{commenter}}"
   {{/if}}
 
   {{#if cc}}
-    &nbsp;cc:"{{cc}}"
+    cc:"{{cc}}"
   {{/if}}
 
   {{#if subject}}
-    &nbsp;subject:"{{subject}}"
+    subject:"{{subject}}"
   {{/if}}
 
   {{#if description}}
-    &nbsp;description:"{{description}}"
+    description:"{{description}}"
   {{/if}}
 
   {{#if tags}}
-    &nbsp;tags:"{{tags}}"
+    tags:"{{tags}}"
   {{/if}}
 
   {{#if via}}
-    &nbsp;via:{{via}}
-{{/if}}
+    via:{{via}}
+  {{/if}}
 {{/filters}}
