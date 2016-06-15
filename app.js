@@ -1,7 +1,6 @@
 (function() {
   return {
     events: {
-      'app.activated':'loadSettings',
       'pane.activated':'onPaneActivated',
       'keyup input.user':'findUsers',
       // 'keyup input.string':'onTextEntered',
@@ -19,7 +18,7 @@
       'search.done':'onSearchComplete',
       // 'search.fail':'onSearchFail',
       'getUrl.done':'onSearchComplete',
-      'getCustomTicketFields.done':'gotFields'
+      'getCustomTicketFields.done':'setCustomFields'
 
     },
 
@@ -56,76 +55,74 @@
         };
       },
       getCustomTicketFields: function(url) {
-        if (!url) {url = '/api/v2/ticket_fields.json';}
+        if (!url) { url = '/api/v2/ticket_fields.json'; }
         return {
           url: url
         };
       }
     },
 
-    loadSettings: function() {
-
-    },
-
     onPaneActivated: function(data) {
-      if(data.firstLoad) {
-        // render the default template
+      if (data.firstLoad) {
         this.switchTo('search');
         this.$('span.loading').hide();
         this.$('span.no_results').hide();
         this.userIDs = [];
         this.users = [];
-        this.allCustomFields = [];
+        this.customFields = [];
         this.columns = {};
         this.ajax('getCustomTicketFields');
       }
     },
 
-    gotFields: function(response) {
-      this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
+    setCustomFields: function(response) {
+      this.customFields = this.customFields.concat(response.ticket_fields);
+
       if (response.next_page) {
         this.ajax('getCustomTicketFields', response.next_page);
         return;
       } else {
-        // pagination done
-        this.allCustomFields = _.filter(this.allCustomFields, function(cf) {
+        this.customFields = _.filter(this.customFields, function(cf) {
           return !_.contains(['subject', 'description', 'status',
-                                'tickettype', 'priority', 'group', 'assignee'], cf.type) && cf.active;
+                              'tickettype', 'priority', 'group', 
+                              'assignee'], cf.type) && cf.active;
         });
-        //shortcut
+
         var e = {"currentTarget": {"value":"ticket"}};
         this.onTypeChanged(e); // renders the options for the type
       }
     },
 
     onTypeChanged: function(e) {
-      var type = e.currentTarget.value,
-          options_html = '';
+      var type                     = e.currentTarget.value,
+          search_options_template  = '',
+          userFields               = ["assignee", "requester", "submitter","cc", "commenter"];
+
       switch (type) {
         case "ticket":
-          options_html = this.renderTemplate("ticket_options", {
-            customFields: this.allCustomFields
+          search_options_template = this.renderTemplate("ticket_options", {
+            customFields: this.customFields
           });
-        break;
+          break;
         case "topic":
-          options_html = this.renderTemplate("topic_options");
-        break;
+          search_options_template = this.renderTemplate("topic_options");
+          break;
         case "user":
-          options_html = this.renderTemplate("user_options");
-        break;
+          search_options_template = this.renderTemplate("user_options");
+          break;
         case "organization":
-          options_html = this.renderTemplate("organization_options");
-        break;
+          search_options_template = this.renderTemplate("organization_options");
+          break;
         case "":
-          options_html = "Choose a specific type to get access to additional filter options.";
-        break;
+          search_options_template = "Choose a specific type to get access to additional filter options.";
+          break;
       }
-      //inject additional options
-      this.$("div.type_options").html(options_html);
-      // autocomplete ticket options
-      var userFields = ["assignee", "requester", "submitter","cc", "commenter"];
-      _.each(userFields, function(title) {
-        this.$('input.' + title).autocomplete({
+
+      this.$("div.type_options").html(search_options_template);
+
+      // autocomplete the user fields
+      _.each(userFields, function(field) {
+        this.$('input.' + field).autocomplete({
           minLength: 0
         });
       }, this);
@@ -288,14 +285,14 @@
 
     selectCustomFields: function() {
       var that = this,
-        allCustomFields = this.allCustomFields,
+        customFields = this.customFields,
         selected = this.$('.custom_field_options input').map(function () {
           if (that.$(this).prop('checked') ) {
             return that.$(this).attr('data-field-option-id');
           }
         });
       selected = _.toArray(selected);
-      var columns = _.filter(allCustomFields, function(cf) {
+      var columns = _.filter(customFields, function(cf) {
         return _.contains(selected, cf.id.toString());
       });
       return columns;
