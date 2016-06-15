@@ -26,3 +26,7 @@ input[type="checkbox"] {
 a.pull-right {
   margin-top: 10px;
 }
+
+a.pull-right.btn {
+  margin-top: 0px;
+}

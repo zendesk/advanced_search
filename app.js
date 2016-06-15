@@ -1,6 +1,7 @@
 (function() {
   return {
     events: {
+      // EVENTS
       'pane.activated':'onPaneActivated',
       'keyup input.user':'findUsers',
       'change select.type':'onTypeChanged',
@@ -15,11 +16,13 @@
     },
 
     requests: {
+      /*
       searchIncremental: function(query, sort_by, sort_order, page) {
         return {
           url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
         };
       },
+      */
       autocompleteUsers: function(name) {
         return {
           url: '/api/v2/users/autocomplete.json?name=' + name
@@ -120,17 +123,6 @@
       }, this);
     },
 
-    onAddFilterClicked: function(e) {
-      if (e) { e.preventDefault(); }
-      // render various filters
-    },
-
-    onFilterSelected: function(e) {
-      if (e) { e.preventDefault(); }
-      // grab the selection and render the additional filter UI
-      // use a global variable to track the number of these filters rendered, and give them an ID to indicate?
-    },
-
     findUsers: function(e) {
       var name = e.currentTarget.value;
       var encodedQuery = encodeURIComponent(name);
@@ -146,17 +138,6 @@
           source: users
         });
       });
-    },
-
-    findOrgs: function() {
-
-    },
-
-    foundOrgs: function(response) {
-      var organizations = response.organizations;
-
-      console.log("organizations");
-      console.log(organizations);
     },
 
     onSearchClicked: function(e) {
@@ -250,7 +231,7 @@
             has_incidents: this.$('form.ticket_columns .has_incidents').prop('checked'),
             tags: this.$('form.ticket_columns .tags').prop('checked'),
 
-            customFields: this.selectCustomFields()
+            customFields: this.selectedCustomFields()
           };
         break;
       }
@@ -267,25 +248,26 @@
       if (query.length < 2) {
         services.notify("A search query must have at least two characters.", "error");
       } else {
-        var encodedQuery = encodeURIComponent(query);
-        this.encodedQuery = encodedQuery;
+        this.encodedQuery = encodeURIComponent(query);
         this.$("span.no_results").hide();
         this.$("span.loading").show();
-        this.ajax('search', encodedQuery, sort_by, sort_order, page);
+        this.ajax('search', this.encodedQuery, sort_by, sort_order, page);
       }
     },
 
-    selectCustomFields: function() {
-      var that = this,
-        customFields = this.customFields,
-        selected = this.$('.custom_field_options input').map(function () {
-          if (that.$(this).prop('checked') ) {
-            return that.$(this).attr('data-field-option-id');
-          }
-        });
-      selected = _.toArray(selected);
+    selectedCustomFields: function() {
+      var that            = this,
+          customFields    = this.customFields,
+          selectedFields  = this.$('.custom_field_options input').map(function () {
+            if (that.$(this).prop('checked') ) {
+              return that.$(this).attr('data-field-option-id');
+            }
+          });
+
+      selectedFields = _.toArray(selectedFields);
+
       var columns = _.filter(customFields, function(cf) {
-        return _.contains(selected, cf.id.toString());
+        return _.contains(selectedFields, cf.id.toString());
       });
       return columns;
     },
@@ -310,7 +292,6 @@
       var displayAllPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
       var next_page, prev_page;
-      var that = this;
 
       if (displayAllPages && response.next_page) {
         this.ajax('getUrl', response.next_page);
@@ -333,12 +314,12 @@
         return;
       }
 
-      _.each(this.results, function(result, n) {
+      _.each(this.results, function(result, index) {
         var last;
-        if (that.results.length == n+1) { last = true; }
-        else {last = false;}
+        if (this.results.length == index + 1) { last = true; }
+        else { last = false; }
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
-        that.addUsers(users, last);
+        this.addUsers(users, last);
       }.bind(this));
     },
 
@@ -347,7 +328,7 @@
         this.userIDs.push(id);
       }.bind(this));
       this.userIDs = _.filter(_.uniq(this.userIDs), Boolean);
-      if(this.userIDs.length >= 100 || last) {
+      if (this.userIDs.length >= 100 || last) {
         var userBatch = _.first(this.userIDs, 100);
         this.userIDs = _.rest(this.userIDs, 99);
         this.ajax('getUsersBatch', userBatch).done(function(response) {
@@ -360,87 +341,92 @@
     },
 
     encodeResults: function(results) {
-      this.encoded = [];
-      var custom_fields = this.columns.customFields;
-      var cfIDs = _.map(custom_fields, function(cf) {
+      this.encoded        = [];
+      var customFields    = this.columns.customFields;
+      var customFieldIds  = _.map(customFields, function(cf) {
         return cf.id;
       });
-      _.each(results, function(result, n) {
+
+      _.each(results, function(result, index) {
         // filter the custom field result set down to the selected columns
-        result.custom_fields = _.filter(result.custom_fields, function(cf) {
-          return _.contains(cfIDs, cf.id);
+        result.customFields = _.filter(result.customFields, function(cf) {
+          return _.contains(customFieldIds, cf.id);
         });
-        result.custom_fields = _.map(result.custom_fields, function(cf) {
-          var field = _.find(custom_fields, function(f) { return f.id == cf.id; });
+
+        result.customFields = _.map(result.customFields, function(cf) {
+          var field = _.find(customFields, function(f) { return f.id == cf.id; });
+
           // add flag to textarea fields (used in the template)
-          if(field.type == 'textarea') {
+          if (field.type == 'textarea') {
             cf.textarea = true;
           }
           return cf;
         });
-        if(result.description) {
+
+        if (result.description) {
           result.description = result.description.replace(/"/g, '\"\"');
-          console.log(result.description);
         }
-        // format dates
+
         result.created_at = new Date(result.created_at).toLocaleString();
         result.updated_at = new Date(result.updated_at).toLocaleString();
 
         // look up users from unique array
-        var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
-          requester = _.find(this.users, function(user) { return user.id == result.requester_id; }),
-          submitter = _.find(this.users, function(user) { return user.id == result.submitter_id; });
-        var collaborators = _.map(result.collaborator_ids, function(id) {
+        var assignee      = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
+            requester     = _.find(this.users, function(user) { return user.id == result.requester_id; }),
+            submitter     = _.find(this.users, function(user) { return user.id == result.submitter_id; }),
+            collaborators = _.map(result.collaborator_ids, function(id) {
           return _.find(this.users, function(user) { return user.id == id; });
         }, this);
-        // replace user ids w/ names
-        if(assignee) {result.assignee = assignee.name;}
-        else {result.assignee = result.assignee_id;}
-        if(requester) {result.requester = requester.name;}
-        else {result.requester = result.requester_id;}
-        if(submitter) {result.submitter = submitter.name;}
-        else {result.submitter = result.submitter_id;}
-        if(collaborators) {result.collaborators = collaborators;}
 
+        // replace user ids with names
+        if (assignee) { result.assignee = assignee.name; }
+        else { result.assignee = result.assignee_id; }
+        if (requester) { result.requester = requester.name; }
+        else { result.requester = result.requester_id; }
+        if (submitter) { result.submitter = submitter.name; }
+        else { result.submitter = result.submitter_id; }
+        if (collaborators) { result.collaborators = collaborators; }
 
-        // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
-        // this.encoded[n] = {
-        //   type: encodeURIComponent(result.type),
-        //   id: encodeURIComponent(result.id),
-        //   subject: encodeURIComponent(result.subject),
-        //   group_id: encodeURIComponent(result.group_id),
-        //   assignee_id: encodeURIComponent(result.assignee),
-        //   requester_id: encodeURIComponent(result.requester),
-        //   status: encodeURIComponent(result.status),
-        //   priority: encodeURIComponent(result.priority),
-        //   created_at: encodeURIComponent(result.created_at),
-        //   updated_at: encodeURIComponent(result.updated_at),
+        /*
+        // encode results
+        // TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
+        this.encoded[index] = {
+          type: encodeURIComponent(result.type),
+          id: encodeURIComponent(result.id),
+          subject: encodeURIComponent(result.subject),
+          group_id: encodeURIComponent(result.group_id),
+          assignee_id: encodeURIComponent(result.assignee),
+          requester_id: encodeURIComponent(result.requester),
+          status: encodeURIComponent(result.status),
+          priority: encodeURIComponent(result.priority),
+          created_at: encodeURIComponent(result.created_at),
+          updated_at: encodeURIComponent(result.updated_at),
 
-        //   external_id: encodeURIComponent(result.external_id),
-        //   channel:  encodeURIComponent(result.via.channel),
-        //   description:  encodeURIComponent(result.description),
-        //   recipient:  encodeURIComponent(result.recipient),
-        //   submitter: encodeURIComponent(result.submitter),
-        //   organization_id:  encodeURIComponent(result.organization_id),
-        //   forum_topic_id:  encodeURIComponent(result.forum_topic_id),
-        //   problem_id:  encodeURIComponent(result.problem_id),
-        //   has_incidents:  encodeURIComponent(result.has_incidents),
-        //   tags:  encodeURIComponent(result.tags),
+          external_id: encodeURIComponent(result.external_id),
+          channel:  encodeURIComponent(result.via.channel),
+          description:  encodeURIComponent(result.description),
+          recipient:  encodeURIComponent(result.recipient),
+          submitter: encodeURIComponent(result.submitter),
+          organization_id:  encodeURIComponent(result.organization_id),
+          forum_topic_id:  encodeURIComponent(result.forum_topic_id),
+          problem_id:  encodeURIComponent(result.problem_id),
+          has_incidents:  encodeURIComponent(result.has_incidents),
+          tags:  encodeURIComponent(result.tags),
+          collaborators: _.map(result.collaborators, function(cc) {
+            return encodeURIComponent(cc.name);
+          }),
+          // encode custom field values (all of them) but NOT ids
+          customFields: _.map(result.customFields, function(cf) {
+            cf.value = encodeURIComponent(cf.value);
+            return cf;
+          })
+        };
+        */
 
-        //   collaborators: _.map(result.collaborators, function(cc) {
-        //     return encodeURIComponent(cc.name);
-        //   }),
-        //   // encode custom field values (all of them) but NOT ids
-        //   custom_fields: _.map(result.custom_fields, function(cf) {
-        //     cf.value = encodeURIComponent(cf.value);
-        //     return cf;
-        //   })
-        // };
-        //add status labels
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
 
       }.bind(this));
-      // create export
+
       var data = this.renderTemplate('_tickets_export', {
         tickets: results,
         columns: this.columns
@@ -448,7 +434,6 @@
       var file = new File([data], 'tickets.csv');
       var url = URL.createObjectURL(file);
 
-      // display results
       var results_html = this.renderTemplate('results', {
         results: results,
         // encoded_results: this.encoded,
@@ -458,6 +443,7 @@
         columns: this.columns,
         download: url
       });
+
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);
     }
