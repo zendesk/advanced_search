@@ -1,14 +1,9 @@
-/*global Blob*/
-/*global URL*/
-/*global File*/
 (function() {
   return {
     events: {
       'app.activated':'loadSettings',
       'pane.activated':'onPaneActivated',
-
       'keyup input.user':'findUsers',
-
       // 'keyup input.string':'onTextEntered',
       // 'change select.dateType':'onDateTypeChanged',
       // 'change input.startDate':'onStartDateChanged',
@@ -16,20 +11,18 @@
       'change select.type':'onTypeChanged',
       // 'change select.group':'onGroupChanged',
       // 'change select.assignee':'onAssigneeChanged',
-
       'click button.addFilter':'onAddFilterClicked',
       'click button.search':'onSearchClicked',
       'click a.prev_page':'onPrevClicked',
       'click a.next_page':'onNextClicked',
-
       // request events
       'search.done':'onSearchComplete',
       // 'search.fail':'onSearchFail',
-
       'getUrl.done':'onSearchComplete',
       'getCustomTicketFields.done':'gotFields'
 
     },
+
     requests: {
       // searchIncremental: function(query, sort_by, sort_order, page) {
       //   return {
@@ -71,10 +64,9 @@
     },
 
     loadSettings: function() {
-      
-      
 
     },
+
     onPaneActivated: function(data) {
       if(data.firstLoad) {
         // render the default template
@@ -90,6 +82,7 @@
 
       }
     },
+
     gotFields: function(response) {
       this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
       if(response.next_page) {
@@ -106,6 +99,7 @@
         this.onTypeChanged(e); // renders the options for the type
       }
     },
+
     onTypeChanged: function(e) {
       var type = e.currentTarget.value,
           options_html = '';
@@ -144,6 +138,7 @@
       // render various filters
       //
     },
+
     onFilterSelected: function(e) {
       if (e) {e.preventDefault();}
       //grab the selection and render the additional filter UI
@@ -166,9 +161,11 @@
         });
       });
     },
+
     findOrgs: function() {
 
     },
+
     foundOrgs: function(response) {
       var organizations = response.organizations;
 
@@ -281,6 +278,7 @@
         this.ajax('search', encodedQuery, sort_by, sort_order, page);
       }
     },
+
     selectCustomFields: function() {
       var that = this,
         allCustomFields = this.allCustomFields,
@@ -295,6 +293,7 @@
       });
       return columns;
     },
+
     onPrevClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -302,6 +301,7 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
+
     onNextClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -309,6 +309,7 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
+
     onSearchComplete: function(response) {
       var allPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
@@ -347,6 +348,7 @@
         this.addUsers(users, last);
       }.bind(this));
     },
+
     addUsers: function(ids, last) {
       _.each(ids, function(id) {
         this.userIDs.push(id);
@@ -363,6 +365,7 @@
         });
       }
     },
+
     encodeResults: function(results) {
       this.encoded = [];
       var custom_fields = this.columns.customFields;
