@@ -56,7 +56,7 @@
         };
       },
       getCustomTicketFields: function(url) {
-        if(!url) {url = '/api/v2/ticket_fields.json';}
+        if (!url) {url = '/api/v2/ticket_fields.json';}
         return {
           url: url
         };
@@ -77,15 +77,13 @@
         this.users = [];
         this.allCustomFields = [];
         this.columns = {};
-
         this.ajax('getCustomTicketFields');
-
       }
     },
 
     gotFields: function(response) {
       this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
-      if(response.next_page) {
+      if (response.next_page) {
         this.ajax('getCustomTicketFields', response.next_page);
         return;
       } else {
@@ -125,7 +123,7 @@
       //inject additional options
       this.$("div.type_options").html(options_html);
       // autocomplete ticket options
-      var userFields = ["assignee","requester","submitter","cc","commenter"];
+      var userFields = ["assignee", "requester", "submitter","cc", "commenter"];
       _.each(userFields, function(title) {
         this.$('input.' + title).autocomplete({
           minLength: 0
@@ -174,39 +172,50 @@
     },
 
     onSearchClicked: function(e) {
-      if (e) {e.preventDefault();}
+      if (e) { e.preventDefault(); }
+
+      var string              = this.$('input.string').val(),
+          type                = this.$('form.main_search select.type').val(),
+          $status_operator    = this.$('form.ticket_filters select.status_operator').val(),
+          $priority_operator  = this.$('form.ticket_filters select.priority_operator').val(),
+          $date_operator      = this.$('form.ticket_filters select.date_operator').val(),
+          filter_string       = '';
+
       this.$('div.results').html('');
-      var string = this.$('input.string').val(),
-        type = this.$('form.main_search select.type').val();
       this.type = type;
-      var filter_string = '';
+
       switch (type) {
-        case "ticket"://if searching for tickets
+        case "ticket":
           var status_operator = '';
-          // TODO change to another switch
-          if(this.$('form.ticket_filters select.status_operator').val() == 'greater') {
+
+          if ($status_operator == 'greater') {
             status_operator = '>';
-          } else if (this.$('form.ticket_filters select.status_operator').val() == 'less') {
+          } else if ($status_operator == 'less') {
             status_operator = '<';
-          } else if (this.$('form.ticket_filters select.status_operator').val() == ':') {
+          } else if ($status_operator == ':') {
             status_operator = ':';
           }
+
           var priority_operator = '';
-          if(this.$('form.ticket_filters select.priority_operator').val() == 'greater') {
+
+          if ($priority_operator == 'greater') {
             priority_operator = '>';
-          } else if (this.$('form.ticket_filters select.priority_operator').val() == 'less') {
+          } else if ($priority_operator == 'less') {
             priority_operator = '<';
-          } else if (this.$('form.ticket_filters select.priority_operator').val() == ':') {
+          } else if ($priority_operator == ':') {
             priority_operator = ':';
           }
+
           var date_operator = '';
-          if(this.$('form.ticket_filters select.date_operator').val() == 'greater') {
+
+          if ($date_operator == 'greater') {
             date_operator = '>';
-          } else if (this.$('form.ticket_filters select.date_operator').val() == 'less') {
+          } else if ($date_operator == 'less') {
             date_operator = '<';
-          } else if (this.$('form.ticket_filters select.date_operator').val() == ':') {
+          } else if ($date_operator == ':') {
             date_operator = ':';
           }
+
           var ticket_filters = {
             "status": status_operator + this.$('form.ticket_filters select.status_value').val(),
             "ticket_type": this.$('form.ticket_filters select.ticket_type').val(),
@@ -221,15 +230,14 @@
             "cc": this.$('form.ticket_filters input.cc').val(),
             "subject": this.$('form.ticket_filters input.subject').val(),
             "description": this.$('form.ticket_filters input.description').val(),
-            "tags": this.$('form.ticket_filters input.tags').val(), //.split(/\W/)
+            "tags": this.$('form.ticket_filters input.tags').val(),
             "via": this.$('form.ticket_filters select.via').val()
           };
 
-          // render a template to build the filters string
           filter_string = this.renderTemplate('ticket_filter_string', {
             filters: ticket_filters
           });
-          // console.log(ticket_filters);
+
           this.columns = {
             type: this.$('form.ticket_columns .type').prop('checked'),
             id: this.$('form.ticket_columns .id').prop('checked'),
@@ -257,24 +265,23 @@
             customFields: this.selectCustomFields()
           };
         break;
-        //  TODO add cases for other objects
-      } // end switch
-      
-      //no matter the type...
+      }
+
       this.results = [];
       var query = string + filter_string + ' type:' + type,
         sort_by = this.$('select.sort_by').val(),
         sort_order = this.$('select.sort_order').val(),
         page = '1';
-      if(query.length < 2) {
+
+      console.log(query);
+
+      if (query.length < 2) {
         services.notify("A search query must have at least two characters.", "error");
       } else {
         var encodedQuery = encodeURIComponent(query);
-        // store the query globally
         this.encodedQuery = encodedQuery;
         this.$("span.no_results").hide();
         this.$("span.loading").show();
-        // make the request
         this.ajax('search', encodedQuery, sort_by, sort_order, page);
       }
     },
@@ -283,7 +290,7 @@
       var that = this,
         allCustomFields = this.allCustomFields,
         selected = this.$('.custom_field_options input').map(function () {
-          if( that.$(this).prop('checked') ) {
+          if (that.$(this).prop('checked') ) {
             return that.$(this).attr('data-field-option-id');
           }
         });
@@ -313,36 +320,34 @@
     onSearchComplete: function(response) {
       var allPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
-      var next_page,
-          prev_page;
-      if(allPages && response.next_page) {
-        // get the next page by URL
+      var next_page, prev_page;
+
+      if (allPages && response.next_page) {
         this.ajax('getUrl', response.next_page);
         return;
       } else {
-        // TODO: add buttons # numbering
-        if(response.next_page) {
+        if (response.next_page) {
           next_page = response.next_page;
           this.next_page = response.next_page;
         }
-        if(response.previous_page) {
+        if (response.previous_page) {
           prev_page = response.previous_page;
           this.prev_page = response.previous_page;
         }
         this.numberOfResults = response.count;
       }
+
       var results = this.results;
-      if(results.length === 0) {
+
+      if (results.length === 0) {
         this.$("span.loading").hide();
         this.$('span.no_results').show();
         return;
       }
-      // TODO make conditional for results type - e.g. this.type == 'tickets'
-      // massage the data...
+
       _.each(results, function(result, n) {
-        // store user IDs
         var last;
-        if(results.length == n+1) {last = true;}
+        if (results.length == n+1) {last = true;}
         else {last = false;}
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
         this.addUsers(users, last);

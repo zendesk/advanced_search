@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <form class="form-inline main_search"> 
     <label>Search</label>
-    <input class="string" type="search" id="input" name="search" autofocus></input>
+    <input class="string" type="search" id="input" name="search" autofocus />
     &nbsp;&nbsp;
     <label>Type</label>
     <select class="type">
@@ -40,8 +40,8 @@
   </div>
   <div class="results">
     {{!-- inject results here --}}
-    
   </div>
+
   <span class="loading">{{spinner "dotted"}}</span>
   <span class="no_results">This query has no results. Try broadening your search.</span>
 </div>
