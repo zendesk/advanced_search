@@ -85,7 +85,7 @@
         <td>{{external_id}}</td>
       {{/if}}
       {{#if ../columns.channel}}
-        <td>{{channel}}</td>
+        <td>{{via.channel}}</td>
       {{/if}}
       {{#if ../columns.description}}
         <td>{{description}}</td>
@@ -97,7 +97,7 @@
         <td><a href="#/users/{{submitter_id}}">{{submitter}}</a></td>
       {{/if}}
       {{#if ../columns.organization}}
-        <td>{{organization}}</td>
+        <td>{{organization_id}}</td>
       {{/if}}
       {{#if ../columns.collaborators}}
         <td>{{#each collaborators}}<a href="#/users/{{this.id}}">{{this.name}}</a>{{#unless @last}}, {{/unless}}{{/each}}</td>
