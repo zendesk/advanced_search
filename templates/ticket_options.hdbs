@@ -56,8 +56,9 @@
     <option value="less"> &lt; </option>
   </select>
   <input class="date_value" type="date"></input> 
+
   <br><br>
-{{!-- line 2 --}}
+
   <div class="column column_1">
     <label>Group</label><br>
     <input class="group"></input>
@@ -76,7 +77,6 @@
     <br>
   </div>
 
-{{!-- column 2 --}}
   <div class="column column_2">
     <label>Assignee</label><br>
     <input id="assignee" class="assignee user"></input>
@@ -107,8 +107,6 @@
       <option value="logmein">logmein</option>
     </select>
   </div>
-
-
 </form>
 
 <form class="ticket_columns form-inline well">
@@ -141,10 +139,8 @@
   <br>
   <h5>Custom Fields</h5>
   <div class="custom_field_options">
-    {{!-- insert custom field checkboxes here --}}
     {{#each customFields}}
       <span class="no_wrap"><input type="checkbox" data-field-option-id="{{id}}"> {{title}} </input>{{#unless @last}}|{{/unless}}</span>
     {{/each}}
-
   </div>
 </form>

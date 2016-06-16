@@ -1,9 +1,7 @@
 input {
   border: 1px solid #d3d3d3;
 }
-/*.ticket_options label {
-  display: block;
-}*/
+
 .column input {
   width: 400px;
   margin-bottom: 10px;
@@ -18,4 +16,17 @@ input {
 }
 .no_wrap {
   white-space: nowrap;
+}
+
+input[type="checkbox"] {
+  vertical-align: middle;
+  margin-bottom: 4px;
+}
+
+a.pull-right {
+  margin-top: 10px;
+}
+
+a.pull-right.btn {
+  margin-top: 0px;
 }

@@ -1,7 +1,4 @@
-{{!-- <h3>Results ({{count}}) <a href="data:text/csv;charset=utf-8,id{{#if columns.subject}}%2CSubject{{/if}}{{#if columns.requester}}%2CRequester{{/if}}{{#if columns.group}}%2CGroup{{/if}}{{#if columns.assignee}}%2CAssignee{{/if}}{{#if columns.status}}%2CStatus{{/if}}{{#if columns.type}}%2CType{{/if}}{{#if columns.priority}}%2CPriority{{/if}}{{#if columns.created_at}}%2CCreated{{/if}}{{#if columns.updated_at}}%2CUpdated{{/if}}{{#if columns.external_id}}%2CExternal_ID{{/if}}{{#if columns.channel}}%2CChannel{{/if}}{{#if columns.description}}%2CDescription{{/if}}{{#if columns.recipient}}%2CRecipient{{/if}}{{#if columns.submitter}}%2CSubmitter{{/if}}{{#if columns.organization}}%2COrganization{{/if}}{{#if columns.collaborators}}%2CCCs{{/if}}{{#if columns.forum_topic}}%2CTopic{{/if}}{{#if columns.problem_id}}%2CProblem{{/if}}{{#if columns.has_incidents}}%2CIncidents{{/if}}{{#if columns.tags}}%2CTags{{/if}}{{#each columns.customFields}}%2C{{title}}{{/each}}%0A{{#encoded_results}}{{id}}{{#if ../columns.subject}}%2C%22{{subject}}%22{{/if}}{{#if ../columns.requester}}%2C%22{{requester_id}}%22{{/if}}{{#if ../columns.group}}%2C{{group_id}}{{/if}}{{#if ../columns.assignee}}%2C{{assignee_id}}{{/if}}{{#if ../columns.status}}%2C{{status}}{{/if}}{{#if ../columns.type}}%2C{{type}}{{/if}}{{#if ../columns.priority}}%2C{{priority}}{{/if}}{{#if ../columns.created_at}}%2C%22{{created_at}}%22{{/if}}{{#if ../columns.updated_at}}%2C%22{{updated_at}}%22{{/if}}{{#if ../columns.external_id}}%2C%22{{external_id}}%22{{/if}}{{#if ../columns.channel}}%2C%22{{channel}}%22{{/if}}{{#if ../columns.description}}%2C%22{{description}}%22{{/if}}{{#if ../columns.recipient}}%2C%22{{recipient}}%22{{/if}}{{#if ../columns.submitter}}%2C%22{{submitter}}%22{{/if}}{{#if ../columns.organization}}%2C{{organization}}{{/if}}{{#if ../columns.collaborators}}%2C%22{{collaborators}}%22{{/if}}{{#if ../columns.forum_topic}}%2C{{forum_topic}}{{/if}}{{#if ../columns.problem_id}}%2C{{problem_id}}{{/if}}{{#if ../columns.has_incidents}}%2C{{has_incidents}}{{/if}}{{#if ../columns.tags}}%2C%22{{tags}}%22{{/if}}{{#each custom_fields}}%2C%22{{value}}%22{{/each}}%0A{{/encoded_results}}" download="results.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3> --}}
-
 <h3>Results ({{count}}) <a href="{{download}}" download="tickets.csv" class="btn pull-right"><i class="icon-download"></i> Download CSV</a></h3>
-
 <br>
 <div class="well results-well">
 <table class="table">
@@ -32,18 +29,14 @@
       {{#if columns.tags}}<td>Tags</td>{{/if}}
 
       {{#each columns.customFields}}
-      {{!-- prints the custom field's ID as a column --}}
+        {{!-- prints the custom field's ID as a column --}}
         <td>{{title}}</td>
-
       {{/each}}
       
     </th>
     {{!-- if topic --}}
-
     {{!-- if user --}}
-
     {{!-- if organization --}}
-
   </thead>
   <tbody>
     {{#results}}
@@ -85,7 +78,7 @@
         <td>{{external_id}}</td>
       {{/if}}
       {{#if ../columns.channel}}
-        <td>{{channel}}</td>
+        <td>{{via.channel}}</td>
       {{/if}}
       {{#if ../columns.description}}
         <td>{{description}}</td>
@@ -97,7 +90,7 @@
         <td><a href="#/users/{{submitter_id}}">{{submitter}}</a></td>
       {{/if}}
       {{#if ../columns.organization}}
-        <td>{{organization}}</td>
+        <td>{{organization_id}}</td>
       {{/if}}
       {{#if ../columns.collaborators}}
         <td>{{#each collaborators}}<a href="#/users/{{this.id}}">{{this.name}}</a>{{#unless @last}}, {{/unless}}{{/each}}</td>

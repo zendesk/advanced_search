@@ -1,41 +1,32 @@
 /*global Blob*/
 /*global URL*/
 /*global File*/
+
 (function() {
   return {
     events: {
-      'app.activated':'loadSettings',
+      // EVENTS
       'pane.activated':'onPaneActivated',
-
       'keyup input.user':'findUsers',
-
-      // 'keyup input.string':'onTextEntered',
-      // 'change select.dateType':'onDateTypeChanged',
-      // 'change input.startDate':'onStartDateChanged',
-      // 'change input.endDate':'onEndDateChanged',
       'change select.type':'onTypeChanged',
-      // 'change select.group':'onGroupChanged',
-      // 'change select.assignee':'onAssigneeChanged',
-
       'click button.addFilter':'onAddFilterClicked',
       'click button.search':'onSearchClicked',
       'click a.prev_page':'onPrevClicked',
       'click a.next_page':'onNextClicked',
-
-      // request events
-      'search.done':'onSearchComplete',
-      // 'search.fail':'onSearchFail',
-
-      'getUrl.done':'onSearchComplete',
-      'getCustomTicketFields.done':'gotFields'
-
+      // REQUEST CALLBACKS
+      'search.done':'onSearchSuccess',
+      'getUrl.done':'onSearchSuccess',
+      'getCustomTicketFields.done':'setCustomFields'
     },
+
     requests: {
-      // searchIncremental: function(query, sort_by, sort_order, page) {
-      //   return {
-      //     url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
-      //   };
-      // },
+      /*
+      searchIncremental: function(query, sort_by, sort_order, page) {
+        return {
+          url: helpers.fmt('/api/v2/search/incremental?query=%@&sort_by=%@&sort_order=%@&page=%@', query, sort_by, sort_order, page)
+        };
+      },
+      */
       autocompleteUsers: function(name) {
         return {
           url: '/api/v2/users/autocomplete.json?name=' + name
@@ -63,91 +54,77 @@
         };
       },
       getCustomTicketFields: function(url) {
-        if(!url) {url = '/api/v2/ticket_fields.json';}
+        if (!url) { url = '/api/v2/ticket_fields.json'; }
         return {
           url: url
         };
       }
     },
 
-    loadSettings: function() {
-      
-      
+    users: [],
+    userIDs: [],
+    customFields: [],
 
-    },
     onPaneActivated: function(data) {
-      if(data.firstLoad) {
-        // render the default template
+      if (data.firstLoad) {
         this.switchTo('search');
         this.$('span.loading').hide();
         this.$('span.no_results').hide();
-        this.userIDs = [];
-        this.users = [];
-        this.allCustomFields = [];
-        this.columns = {};
-
         this.ajax('getCustomTicketFields');
-
       }
     },
-    gotFields: function(response) {
-      this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
-      if(response.next_page) {
+
+    setCustomFields: function(response) {
+      this.customFields = this.customFields.concat(response.ticket_fields);
+
+      if (response.next_page) {
         this.ajax('getCustomTicketFields', response.next_page);
         return;
       } else {
-        // pagination done
-        this.allCustomFields = _.filter(this.allCustomFields, function(cf) {
+        this.customFields = _.filter(this.customFields, function(cf) {
           return !_.contains(['subject', 'description', 'status',
-                                'tickettype', 'priority', 'group', 'assignee'], cf.type) && cf.active;
+                              'tickettype', 'priority', 'group', 
+                              'assignee'], cf.type) && cf.active;
         });
-        //shortcut
+
         var e = {"currentTarget": {"value":"ticket"}};
-        this.onTypeChanged(e); // renders the options for the type
+        this.onTypeChanged(e);
       }
     },
+
     onTypeChanged: function(e) {
-      var type = e.currentTarget.value,
-          options_html = '';
+      var type                     = e.currentTarget.value,
+          search_options_template  = '',
+          userFields               = ["assignee", "requester", "submitter","cc", "commenter"];
+
       switch (type) {
         case "ticket":
-          options_html = this.renderTemplate("ticket_options", {
-            customFields: this.allCustomFields
+          search_options_template = this.renderTemplate("ticket_options", {
+            customFields: this.customFields
           });
-        break;
+          break;
         case "topic":
-          options_html = this.renderTemplate("topic_options");
-        break;
+          search_options_template = this.renderTemplate("topic_options");
+          break;
         case "user":
-          options_html = this.renderTemplate("user_options");
-        break;
+          search_options_template = this.renderTemplate("user_options");
+          break;
         case "organization":
-          options_html = this.renderTemplate("organization_options");
-        break;
+          search_options_template = this.renderTemplate("organization_options");
+          break;
         case "":
-          options_html = "Choose a specific type to get access to additional filter options.";
-        break;
+          search_options_template = "Choose a specific type to get access to additional filter options.";
+          break;
       }
-      //inject additional options
-      this.$("div.type_options").html(options_html);
-      // autocomplete ticket options
-      var userFields = ["assignee","requester","submitter","cc","commenter"];
-      _.each(userFields, function(title) {
-        this.$('input.' + title).autocomplete({
+
+      this.$("div.type_options").html(search_options_template);
+
+      // autocomplete the user fields
+      _.each(userFields, function(field) {
+        this.$('input.' + field).autocomplete({
           minLength: 0
         });
       }, this);
-    },
-
-    onAddFilterClicked: function(e) {
-      if (e) {e.preventDefault();}
-      // render various filters
-      //
-    },
-    onFilterSelected: function(e) {
-      if (e) {e.preventDefault();}
-      //grab the selection and render the additional filter UI
-      //use a global variable to track the number of these filters rendered, and give them an ID to indicate?
     },
 
     findUsers: function(e) {
@@ -160,56 +137,53 @@
             value: user.email || user.id
           };
         });
-        console.log(users);
+
         this.$('input#' + e.currentTarget.id).autocomplete({
           source: users
         });
       });
     },
-    findOrgs: function() {
-
-    },
-    foundOrgs: function(response) {
-      var organizations = response.organizations;
-
-      console.log("organizations");
-      console.log(organizations);
-    },
 
     onSearchClicked: function(e) {
-      if (e) {e.preventDefault();}
+      if (e) { e.preventDefault(); }
+
+      var string              = this.$('input.string').val(),
+          type                = this.$('form.main_search select.type').val(),
+          status_operator    = this.$('form.ticket_filters select.status_operator').val(),
+          priority_operator  = this.$('form.ticket_filters select.priority_operator').val(),
+          date_operator      = this.$('form.ticket_filters select.date_operator').val(),
+          filter_string       = '';
+
       this.$('div.results').html('');
-      var string = this.$('input.string').val(),
-        type = this.$('form.main_search select.type').val();
       this.type = type;
-      var filter_string = '';
+
       switch (type) {
-        case "ticket"://if searching for tickets
-          var status_operator = '';
-          // TODO change to another switch
-          if(this.$('form.ticket_filters select.status_operator').val() == 'greater') {
+        case "ticket":
+
+          if (status_operator == 'greater') {
             status_operator = '>';
-          } else if (this.$('form.ticket_filters select.status_operator').val() == 'less') {
+          } else if (status_operator == 'less') {
             status_operator = '<';
-          } else if (this.$('form.ticket_filters select.status_operator').val() == ':') {
+          } else if (status_operator == ':') {
             status_operator = ':';
           }
-          var priority_operator = '';
-          if(this.$('form.ticket_filters select.priority_operator').val() == 'greater') {
+
+          if (priority_operator == 'greater') {
             priority_operator = '>';
-          } else if (this.$('form.ticket_filters select.priority_operator').val() == 'less') {
+          } else if (priority_operator == 'less') {
             priority_operator = '<';
-          } else if (this.$('form.ticket_filters select.priority_operator').val() == ':') {
+          } else if (priority_operator == ':') {
             priority_operator = ':';
           }
-          var date_operator = '';
-          if(this.$('form.ticket_filters select.date_operator').val() == 'greater') {
+
+          if (date_operator == 'greater') {
             date_operator = '>';
-          } else if (this.$('form.ticket_filters select.date_operator').val() == 'less') {
+          } else if (date_operator == 'less') {
             date_operator = '<';
-          } else if (this.$('form.ticket_filters select.date_operator').val() == ':') {
+          } else if (date_operator == ':') {
             date_operator = ':';
           }
+
           var ticket_filters = {
             "status": status_operator + this.$('form.ticket_filters select.status_value').val(),
             "ticket_type": this.$('form.ticket_filters select.ticket_type').val(),
@@ -224,15 +198,14 @@
             "cc": this.$('form.ticket_filters input.cc').val(),
             "subject": this.$('form.ticket_filters input.subject').val(),
             "description": this.$('form.ticket_filters input.description').val(),
-            "tags": this.$('form.ticket_filters input.tags').val(), //.split(/\W/)
+            "tags": this.$('form.ticket_filters input.tags').val(),
             "via": this.$('form.ticket_filters select.via').val()
           };
 
-          // render a template to build the filters string
-          filter_string = this.renderTemplate('ticket_filter_string', {
+          filter_string = this.renderTemplate('ticket_filter', {
             filters: ticket_filters
           });
-          // console.log(ticket_filters);
+
           this.columns = {
             type: this.$('form.ticket_columns .type').prop('checked'),
             id: this.$('form.ticket_columns .id').prop('checked'),
@@ -257,44 +230,47 @@
             has_incidents: this.$('form.ticket_columns .has_incidents').prop('checked'),
             tags: this.$('form.ticket_columns .tags').prop('checked'),
 
-            customFields: this.selectCustomFields()
+            customFields: this.selectedCustomFields()
           };
         break;
-        //  TODO add cases for other objects
-      } // end switch
-      
-      //no matter the type...
+      }
+
       this.results = [];
       var query = string + filter_string + ' type:' + type,
         sort_by = this.$('select.sort_by').val(),
         sort_order = this.$('select.sort_order').val(),
         page = '1';
-      if(query.length < 2) {
+
+      // remove linebreaks and spaces generated from the filter string template
+      query = query.replace(/(\r\n|\n|\r)/gm,"").replace(/ /,"");
+
+      if (query.length < 2) {
         services.notify("A search query must have at least two characters.", "error");
       } else {
-        var encodedQuery = encodeURIComponent(query);
-        // store the query globally
-        this.encodedQuery = encodedQuery;
+        this.encodedQuery = encodeURIComponent(query);
         this.$("span.no_results").hide();
         this.$("span.loading").show();
-        // make the request
-        this.ajax('search', encodedQuery, sort_by, sort_order, page);
+        this.ajax('search', this.encodedQuery, sort_by, sort_order, page);
       }
     },
-    selectCustomFields: function() {
-      var that = this,
-        allCustomFields = this.allCustomFields,
-        selected = this.$('.custom_field_options input').map(function () {
-          if( that.$(this).prop('checked') ) {
-            return that.$(this).attr('data-field-option-id');
-          }
-        });
-      selected = _.toArray(selected);
-      var columns = _.filter(allCustomFields, function(cf) {
-        return _.contains(selected, cf.id.toString());
+
+    selectedCustomFields: function() {
+      var that            = this,
+          customFields    = this.customFields,
+          selectedFields  = this.$('.custom_field_options input').map(function () {
+            if (that.$(this).prop('checked') ) {
+              return that.$(this).attr('data-field-option-id');
+            }
+          });
+
+      selectedFields = _.toArray(selectedFields);
+
+      var columns = _.filter(customFields, function(cf) {
+        return _.contains(selectedFields, cf.id.toString());
       });
       return columns;
     },
+
     onPrevClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -302,6 +278,7 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
+
     onNextClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -309,50 +286,48 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
-    onSearchComplete: function(response) {
-      var allPages = this.$('.all_pages').prop('checked');
+
+    onSearchSuccess: function(response) {
+      var displayAllPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
-      var next_page,
-          prev_page;
-      if(allPages && response.next_page) {
-        // get the next page by URL
+      var next_page, prev_page;
+
+      if (displayAllPages && response.next_page) {
         this.ajax('getUrl', response.next_page);
         return;
       } else {
-        // TODO: add buttons # numbering
-        if(response.next_page) {
+        if (response.next_page) {
           next_page = response.next_page;
           this.next_page = response.next_page;
         }
-        if(response.previous_page) {
+        if (response.previous_page) {
           prev_page = response.previous_page;
           this.prev_page = response.previous_page;
         }
         this.numberOfResults = response.count;
       }
-      var results = this.results;
-      if(results.length === 0) {
+
+      if (this.results.length === 0) {
         this.$("span.loading").hide();
         this.$('span.no_results').show();
         return;
       }
-      // TODO make conditional for results type - e.g. this.type == 'tickets'
-      // massage the data...
-      _.each(results, function(result, n) {
-        // store user IDs
+
+      _.each(this.results, function(result, index) {
         var last;
-        if(results.length == n+1) {last = true;}
-        else {last = false;}
+        if (this.results.length == index + 1) { last = true; }
+        else { last = false; }
         var users = _.union(result.collaborator_ids, [result.assignee_id, result.requester_id, result.submitter_id]);
         this.addUsers(users, last);
       }.bind(this));
     },
+
     addUsers: function(ids, last) {
       _.each(ids, function(id) {
         this.userIDs.push(id);
       }.bind(this));
       this.userIDs = _.filter(_.uniq(this.userIDs), Boolean);
-      if(this.userIDs.length >= 100 || last) {
+      if (this.userIDs.length >= 100 || last) {
         var userBatch = _.first(this.userIDs, 100);
         this.userIDs = _.rest(this.userIDs, 99);
         this.ajax('getUsersBatch', userBatch).done(function(response) {
@@ -363,88 +338,94 @@
         });
       }
     },
+
     encodeResults: function(results) {
-      this.encoded = [];
-      var custom_fields = this.columns.customFields;
-      var cfIDs = _.map(custom_fields, function(cf) {
+      this.encoded        = [];
+      var customFields    = this.columns.customFields;
+      var customFieldIds  = _.map(customFields, function(cf) {
         return cf.id;
       });
-      _.each(results, function(result, n) {
+
+      _.each(results, function(result, index) {
         // filter the custom field result set down to the selected columns
-        result.custom_fields = _.filter(result.custom_fields, function(cf) {
-          return _.contains(cfIDs, cf.id);
+        result.customFields = _.filter(result.customFields, function(cf) {
+          return _.contains(customFieldIds, cf.id);
         });
-        result.custom_fields = _.map(result.custom_fields, function(cf) {
-          var field = _.find(custom_fields, function(f) { return f.id == cf.id; });
+
+        result.customFields = _.map(result.customFields, function(cf) {
+          var field = _.find(customFields, function(f) { return f.id == cf.id; });
+
           // add flag to textarea fields (used in the template)
-          if(field.type == 'textarea') {
+          if (field.type == 'textarea') {
             cf.textarea = true;
           }
           return cf;
         });
-        if(result.description) {
+
+        if (result.description) {
           result.description = result.description.replace(/"/g, '\"\"');
-          console.log(result.description);
         }
-        // format dates
+
         result.created_at = new Date(result.created_at).toLocaleString();
         result.updated_at = new Date(result.updated_at).toLocaleString();
 
         // look up users from unique array
-        var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
-          requester = _.find(this.users, function(user) { return user.id == result.requester_id; }),
-          submitter = _.find(this.users, function(user) { return user.id == result.submitter_id; });
-        var collaborators = _.map(result.collaborator_ids, function(id) {
+        var assignee      = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
+            requester     = _.find(this.users, function(user) { return user.id == result.requester_id; }),
+            submitter     = _.find(this.users, function(user) { return user.id == result.submitter_id; }),
+            collaborators = _.map(result.collaborator_ids, function(id) {
           return _.find(this.users, function(user) { return user.id == id; });
         }, this);
-        // replace user ids w/ names
-        if(assignee) {result.assignee = assignee.name;}
-        else {result.assignee = result.assignee_id;}
-        if(requester) {result.requester = requester.name;}
-        else {result.requester = result.requester_id;}
-        if(submitter) {result.submitter = submitter.name;}
-        else {result.submitter = result.submitter_id;}
-        if(collaborators) {result.collaborators = collaborators;}
 
+        // replace user ids with names
+        if (assignee) { result.assignee = assignee.name; }
+        else { result.assignee = result.assignee_id; }
+        if (requester) { result.requester = requester.name; }
+        else { result.requester = result.requester_id; }
+        if (submitter) { result.submitter = submitter.name; }
+        else { result.submitter = result.submitter_id; }
+        if (collaborators) { result.collaborators = collaborators; }
 
-        // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
-        // this.encoded[n] = {
-        //   type: encodeURIComponent(result.type),
-        //   id: encodeURIComponent(result.id),
-        //   subject: encodeURIComponent(result.subject),
-        //   group_id: encodeURIComponent(result.group_id),
-        //   assignee_id: encodeURIComponent(result.assignee),
-        //   requester_id: encodeURIComponent(result.requester),
-        //   status: encodeURIComponent(result.status),
-        //   priority: encodeURIComponent(result.priority),
-        //   created_at: encodeURIComponent(result.created_at),
-        //   updated_at: encodeURIComponent(result.updated_at),
+        /*
+        // encode results
+        // TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
+        this.encoded[index] = {
+          type: encodeURIComponent(result.type),
+          id: encodeURIComponent(result.id),
+          subject: encodeURIComponent(result.subject),
+          group_id: encodeURIComponent(result.group_id),
+          assignee_id: encodeURIComponent(result.assignee),
+          requester_id: encodeURIComponent(result.requester),
+          status: encodeURIComponent(result.status),
+          priority: encodeURIComponent(result.priority),
+          created_at: encodeURIComponent(result.created_at),
+          updated_at: encodeURIComponent(result.updated_at),
 
-        //   external_id: encodeURIComponent(result.external_id),
-        //   channel:  encodeURIComponent(result.via.channel),
-        //   description:  encodeURIComponent(result.description),
-        //   recipient:  encodeURIComponent(result.recipient),
-        //   submitter: encodeURIComponent(result.submitter),
-        //   organization_id:  encodeURIComponent(result.organization_id),
-        //   forum_topic_id:  encodeURIComponent(result.forum_topic_id),
-        //   problem_id:  encodeURIComponent(result.problem_id),
-        //   has_incidents:  encodeURIComponent(result.has_incidents),
-        //   tags:  encodeURIComponent(result.tags),
+          external_id: encodeURIComponent(result.external_id),
+          channel:  encodeURIComponent(result.via.channel),
+          description:  encodeURIComponent(result.description),
+          recipient:  encodeURIComponent(result.recipient),
+          submitter: encodeURIComponent(result.submitter),
+          organization_id:  encodeURIComponent(result.organization_id),
+          forum_topic_id:  encodeURIComponent(result.forum_topic_id),
+          problem_id:  encodeURIComponent(result.problem_id),
+          has_incidents:  encodeURIComponent(result.has_incidents),
+          tags:  encodeURIComponent(result.tags),
+          collaborators: _.map(result.collaborators, function(cc) {
+            return encodeURIComponent(cc.name);
+          }),
+          // encode custom field values (all of them) but NOT ids
+          customFields: _.map(result.customFields, function(cf) {
+            cf.value = encodeURIComponent(cf.value);
+            return cf;
+          })
+        };
+        */
 
-        //   collaborators: _.map(result.collaborators, function(cc) {
-        //     return encodeURIComponent(cc.name);
-        //   }),
-        //   // encode custom field values (all of them) but NOT ids
-        //   custom_fields: _.map(result.custom_fields, function(cf) {
-        //     cf.value = encodeURIComponent(cf.value);
-        //     return cf;
-        //   })
-        // };
-        //add status labels
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
 
       }.bind(this));
-      // create export
+
       var data = this.renderTemplate('_tickets_export', {
         tickets: results,
         columns: this.columns
@@ -452,7 +433,6 @@
       var file = new File([data], 'tickets.csv');
       var url = URL.createObjectURL(file);
 
-      // display results
       var results_html = this.renderTemplate('results', {
         results: results,
         // encoded_results: this.encoded,
@@ -462,6 +442,7 @@
         columns: this.columns,
         download: url
       });
+
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);
     }
