@@ -57,15 +57,15 @@
       }
     },
 
+    users: [],
+    userIDs: [],
+    customFields: [],
+
     onPaneActivated: function(data) {
       if (data.firstLoad) {
         this.switchTo('search');
         this.$('span.loading').hide();
         this.$('span.no_results').hide();
-        this.userIDs = [];
-        this.users = [];
-        this.customFields = [];
-        this.columns = {};
         this.ajax('getCustomTicketFields');
       }
     },
@@ -145,9 +145,9 @@
 
       var string              = this.$('input.string').val(),
           type                = this.$('form.main_search select.type').val(),
-          $status_operator    = this.$('form.ticket_filters select.status_operator').val(),
-          $priority_operator  = this.$('form.ticket_filters select.priority_operator').val(),
-          $date_operator      = this.$('form.ticket_filters select.date_operator').val(),
+          status_operator    = this.$('form.ticket_filters select.status_operator').val(),
+          priority_operator  = this.$('form.ticket_filters select.priority_operator').val(),
+          date_operator      = this.$('form.ticket_filters select.date_operator').val(),
           filter_string       = '';
 
       this.$('div.results').html('');
@@ -155,33 +155,28 @@
 
       switch (type) {
         case "ticket":
-          var status_operator = '';
 
-          if ($status_operator == 'greater') {
+          if (status_operator == 'greater') {
             status_operator = '>';
-          } else if ($status_operator == 'less') {
+          } else if (status_operator == 'less') {
             status_operator = '<';
-          } else if ($status_operator == ':') {
+          } else if (status_operator == ':') {
             status_operator = ':';
           }
 
-          var priority_operator = '';
-
-          if ($priority_operator == 'greater') {
+          if (priority_operator == 'greater') {
             priority_operator = '>';
-          } else if ($priority_operator == 'less') {
+          } else if (priority_operator == 'less') {
             priority_operator = '<';
-          } else if ($priority_operator == ':') {
+          } else if (priority_operator == ':') {
             priority_operator = ':';
           }
 
-          var date_operator = '';
-
-          if ($date_operator == 'greater') {
+          if (date_operator == 'greater') {
             date_operator = '>';
-          } else if ($date_operator == 'less') {
+          } else if (date_operator == 'less') {
             date_operator = '<';
-          } else if ($date_operator == ':') {
+          } else if (date_operator == ':') {
             date_operator = ':';
           }
 
@@ -203,7 +198,7 @@
             "via": this.$('form.ticket_filters select.via').val()
           };
 
-          filter_string = this.renderTemplate('ticket_filter_string', {
+          filter_string = this.renderTemplate('ticket_filter', {
             filters: ticket_filters
           });
 
