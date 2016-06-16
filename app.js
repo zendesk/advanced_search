@@ -1,3 +1,7 @@
+/*global Blob*/
+/*global URL*/
+/*global File*/
+
 (function() {
   return {
     events: {
