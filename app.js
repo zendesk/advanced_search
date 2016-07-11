@@ -160,7 +160,7 @@
             value: user.email || user.id
           };
         });
-        console.log(users);
+
         this.$('input#' + e.currentTarget.id).autocomplete({
           source: users
         });
@@ -171,9 +171,6 @@
     },
     foundOrgs: function(response) {
       var organizations = response.organizations;
-
-      console.log("organizations");
-      console.log(organizations);
     },
 
     onSearchClicked: function(e) {
@@ -384,7 +381,6 @@
         });
         if(result.description) {
           result.description = result.description.replace(/"/g, '\"\"');
-          console.log(result.description);
         }
         // format dates
         result.created_at = new Date(result.created_at).toLocaleString();
