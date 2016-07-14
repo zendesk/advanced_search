@@ -160,7 +160,7 @@
             value: user.email || user.id
           };
         });
-        console.log(users);
+
         this.$('input#' + e.currentTarget.id).autocomplete({
           source: users
         });
@@ -172,8 +172,6 @@
     foundOrgs: function(response) {
       var organizations = response.organizations;
 
-      console.log("organizations");
-      console.log(organizations);
     },
     onSearchClicked: function(e) {
       if (e) {e.preventDefault();}
@@ -231,7 +229,7 @@
           filter_string = this.renderTemplate('ticket_filter_string', {
             filters: ticket_filters
           });
-          // console.log(ticket_filters);
+
           this.columns = {
             type: this.$('form.ticket_columns .type').prop('checked'),
             id: this.$('form.ticket_columns .id').prop('checked'),
@@ -386,7 +384,6 @@
         });
         if(result.description) {
           result.description = result.description.replace(/"/g, '\"\"');
-          console.log(result.description);
         }
         // format dates
         result.created_at = new Date(result.created_at).toLocaleString();
