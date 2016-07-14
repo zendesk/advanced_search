@@ -8,12 +8,12 @@
     events: {
       'app.activated':'onAppActivated',
       'pane.activated':'onPaneActivated',
+      'change select.type':'onTypeChanged',
       'keyup input.user':'findUsers',
       // 'keyup input.string':'onTextEntered',
       // 'change select.dateType':'onDateTypeChanged',
       // 'change input.startDate':'onStartDateChanged',
       // 'change input.endDate':'onEndDateChanged',
-      'change select.type':'onTypeChanged',
       // 'change select.group':'onGroupChanged',
       // 'change select.assignee':'onAssigneeChanged',
       'click button.addFilter':'onAddFilterClicked',
@@ -25,7 +25,7 @@
       'search.done':'onSearchComplete',
       // 'search.fail':'onSearchFail',
       'getUrl.done':'onSearchComplete',
-      'getCustomTicketFields.done':'gotFields'
+      'getTicketFields.done':'setCustomFields'
     },
 
     // REQUESTS =================================================================================================================
@@ -67,7 +67,7 @@
         };
       },
 
-      getCustomTicketFields: function(url) {
+      getTicketFields: function(url) {
         if(!url) {url = '/api/v2/ticket_fields.json';}
         return {
           url: url
@@ -75,7 +75,7 @@
       }
     },
 
-    // METHODS =================================================================================================================
+    // EVENT CALLBACKS ==========================================================================================================
     onAppActivated: function() {
       if (File && Blob && URL) {
         // Browser is fully supportive for export
@@ -87,43 +87,27 @@
     },
 
     onPaneActivated: function(data) {
-      if(data.firstLoad) {
-        // render the default template
-        this.switchTo('search');
+      if (data.firstLoad) {
+        this.switchTo('main');
         this.$('span.loading').hide();
         this.$('span.no_results').hide();
         this.userIDs = [];
         this.users = [];
-        this.allCustomFields = [];
+        this.ticketFields = [];
+        this.customFields = [];
         this.columns = {};
-        this.ajax('getCustomTicketFields');
-      }
-    },
-
-    gotFields: function(response) {
-      this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);// syncrhonous pagination
-      if(response.next_page) {
-        this.ajax('getCustomTicketFields', response.next_page);
-        return;
-      } else {
-        // pagination done
-        this.allCustomFields = _.filter(this.allCustomFields, function(cf) {
-          return !_.contains(['subject', 'description', 'status',
-                                'tickettype', 'priority', 'group', 'assignee'], cf.type) && cf.active;
-        });
-        //shortcut
-        var e = {"currentTarget": {"value":"ticket"}};
-        this.onTypeChanged(e); // renders the options for the type
+        this.ajax('getTicketFields');
       }
     },
 
     onTypeChanged: function(e) {
       var type = e.currentTarget.value,
           options_html = '';
+
       switch (type) {
         case "ticket":
           options_html = this.renderTemplate("ticket_options", {
-            customFields: this.allCustomFields
+            customFields: this.customFields
           });
         break;
         case "topic":
@@ -150,17 +134,6 @@
       }, this);
     },
 
-    onAddFilterClicked: function(e) {
-      if (e) {e.preventDefault();}
-      // render various filters
-    },
-
-    onFilterSelected: function(e) {
-      if (e) {e.preventDefault();}
-      //grab the selection and render the additional filter UI
-      //use a global variable to track the number of these filters rendered, and give them an ID to indicate?
-    },
-
     findUsers: function(e) {
       var name = e.currentTarget.value;
       var encodedQuery = encodeURIComponent(name);
@@ -178,14 +151,11 @@
       });
     },
 
-    findOrgs: function() {
-
+    onAddFilterClicked: function(e) {
+      if (e) {e.preventDefault();}
+      // render various filters
     },
 
-    foundOrgs: function(response) {
-      var organizations = response.organizations;
-
-    },
 
     onSearchClicked: function(e) {
       if (e) {e.preventDefault();}
@@ -296,21 +266,6 @@
       }
     },
 
-    selectCustomFields: function() {
-      var that = this,
-        allCustomFields = this.allCustomFields,
-        selected = this.$('.custom_field_options input').map(function () {
-          if( that.$(this).prop('checked') ) {
-            return that.$(this).attr('data-field-option-id');
-          }
-        });
-      selected = _.toArray(selected);
-      var columns = _.filter(allCustomFields, function(cf) {
-        return _.contains(selected, cf.id.toString());
-      });
-      return columns;
-    },
-
     onPrevClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -326,6 +281,37 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
+
+    // onFilterSelected: function(e) {
+    //   if (e) {e.preventDefault();}
+    //   //grab the selection and render the additional filter UI
+    //   //use a global variable to track the number of these filters rendered, and give them an ID to indicate?
+    // },
+
+    // REQUEST CALLBACKS ==========================================================================================================
+    setCustomFields: function(ticket_fields) {
+      this.ticketFields = this.ticketFields.concat(ticket_fields.ticket_fields);
+
+      if (ticket_fields.next_page) {
+        this.ajax('getTicketFields', ticket_fields.next_page);
+        return;
+      } else {
+        this.customFields = _.filter(this.ticketFields, function(field) {
+          return !_.contains(['subject', 'description', 'status', 'tickettype', 'priority', 'group', 'assignee'], field.type) && field.active;
+        });
+        var e = {"currentTarget": {"value": "ticket"}};
+        this.onTypeChanged(e);
+      }
+    },
+
+    // findOrgs: function() {
+
+    // },
+
+    // foundOrgs: function(response) {
+    //   var organizations = response.organizations;
+
+    // },
 
     onSearchComplete: function(response) {
       var allPages = this.$('.all_pages').prop('checked');
@@ -366,6 +352,8 @@
       }.bind(this));
     },
 
+    // HELPER METHODS ===========================================================================================================
+
     addUsers: function(ids, last) {
       _.each(ids, function(id) {
         this.userIDs.push(id);
@@ -381,6 +369,21 @@
           }.bind(this));
         });
       }
+    },
+
+    selectCustomFields: function() {
+      var that = this,
+        customFields = this.customFields,
+        selected = this.$('.custom_field_options input').map(function () {
+          if( that.$(this).prop('checked') ) {
+            return that.$(this).attr('data-field-option-id');
+          }
+        });
+      selected = _.toArray(selected);
+      var columns = _.filter(customFields, function(cf) {
+        return _.contains(selected, cf.id.toString());
+      });
+      return columns;
     },
 
     encodeResults: function(results) {
