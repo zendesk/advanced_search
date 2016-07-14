@@ -1,6 +1,7 @@
 /*global Blob*/
 /*global URL*/
 /*global File*/
+
 (function() {
   return {
     events: {
@@ -23,7 +24,7 @@
       'search.done':'onSearchComplete',
       // 'search.fail':'onSearchFail',
       'getUrl.done':'onSearchComplete',
-      'getCustomTicketFields.done':'gotFields'
+      'getCustomTicketFields.done':'setCustomFields'
     },
 
     requests: {
@@ -86,7 +87,7 @@
       }
     },
 
-    gotFields: function(response) {
+    setCustomFields: function(response) {
       this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
       if(response.next_page) {
         this.ajax('getCustomTicketFields', response.next_page);
