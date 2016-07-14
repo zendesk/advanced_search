@@ -19,3 +19,16 @@ input {
 .no_wrap {
   white-space: nowrap;
 }
+
+input[type="checkbox"] {
+  vertical-align: middle;
+  margin-bottom: 4px;
+}
+
+a.pull-right {
+  margin-top: 10px;
+}
+
+a.pull-right.btn {
+  margin-top: 0px;
+}
