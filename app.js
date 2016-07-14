@@ -1,8 +1,10 @@
 /*global Blob*/
 /*global URL*/
 /*global File*/
+
 (function() {
   return {
+    // EVENTS =================================================================================================================
     events: {
       'app.activated':'onAppActivated',
       'pane.activated':'onPaneActivated',
@@ -26,6 +28,7 @@
       'getCustomTicketFields.done':'gotFields'
     },
 
+    // REQUESTS =================================================================================================================
     requests: {
       // searchIncremental: function(query, sort_by, sort_order, page) {
       //   return {
@@ -72,6 +75,7 @@
       }
     },
 
+    // METHODS =================================================================================================================
     onAppActivated: function() {
       if (File && Blob && URL) {
         // Browser is fully supportive for export
