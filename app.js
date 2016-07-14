@@ -1,13 +1,14 @@
 /*global Blob*/
 /*global URL*/
 /*global File*/
-
 (function() {
   return {
     events: {
-      'app.activated':'loadSettings',
+      'app.activated':'onAppActivated',
       'pane.activated':'onPaneActivated',
+
       'keyup input.user':'findUsers',
+
       // 'keyup input.string':'onTextEntered',
       // 'change select.dateType':'onDateTypeChanged',
       // 'change input.startDate':'onStartDateChanged',
@@ -15,6 +16,7 @@
       'change select.type':'onTypeChanged',
       // 'change select.group':'onGroupChanged',
       // 'change select.assignee':'onAssigneeChanged',
+
       'click button.addFilter':'onAddFilterClicked',
       'click button.search':'onSearchClicked',
       'click a.prev_page':'onPrevClicked',
@@ -24,9 +26,8 @@
       'search.done':'onSearchComplete',
       // 'search.fail':'onSearchFail',
       'getUrl.done':'onSearchComplete',
-      'getCustomTicketFields.done':'setCustomFields'
+      'getCustomTicketFields.done':'gotFields'
     },
-
     requests: {
       // searchIncremental: function(query, sort_by, sort_order, page) {
       //   return {
@@ -67,10 +68,15 @@
       }
     },
 
-    loadSettings: function() {
-
+    onAppActivated: function() {
+      if (File && Blob && URL) {
+        // Browser is fully supportive for export
+        this.exportEnabled = true;
+      } else {
+        // Browser not supported. Disable export
+        this.exportEnabled = false;
+      }
     },
-
     onPaneActivated: function(data) {
       if(data.firstLoad) {
         // render the default template
@@ -81,14 +87,11 @@
         this.users = [];
         this.allCustomFields = [];
         this.columns = {};
-
         this.ajax('getCustomTicketFields');
-
       }
     },
-
-    setCustomFields: function(response) {
-      this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);
+    gotFields: function(response) {
+      this.allCustomFields = this.allCustomFields.concat(response.ticket_fields);// syncrhonous pagination
       if(response.next_page) {
         this.ajax('getCustomTicketFields', response.next_page);
         return;
@@ -103,7 +106,6 @@
         this.onTypeChanged(e); // renders the options for the type
       }
     },
-
     onTypeChanged: function(e) {
       var type = e.currentTarget.value,
           options_html = '';
@@ -142,7 +144,6 @@
       // render various filters
       //
     },
-
     onFilterSelected: function(e) {
       if (e) {e.preventDefault();}
       //grab the selection and render the additional filter UI
@@ -159,21 +160,21 @@
             value: user.email || user.id
           };
         });
-
+        console.log(users);
         this.$('input#' + e.currentTarget.id).autocomplete({
           source: users
         });
       });
     },
-
     findOrgs: function() {
 
     },
-
     foundOrgs: function(response) {
       var organizations = response.organizations;
-    },
 
+      console.log("organizations");
+      console.log(organizations);
+    },
     onSearchClicked: function(e) {
       if (e) {e.preventDefault();}
       this.$('div.results').html('');
@@ -230,13 +231,16 @@
           filter_string = this.renderTemplate('ticket_filter_string', {
             filters: ticket_filters
           });
+          // console.log(ticket_filters);
           this.columns = {
             type: this.$('form.ticket_columns .type').prop('checked'),
             id: this.$('form.ticket_columns .id').prop('checked'),
             subject: this.$('form.ticket_columns .subject').prop('checked'),
             group: this.$('form.ticket_columns .group').prop('checked'),
             assignee: this.$('form.ticket_columns .assignee').prop('checked'),
+            assignee_email: this.$('form.ticket_columns .assignee_email').prop('checked'),
             requester: this.$('form.ticket_columns .requester').prop('checked'),
+            requester_email: this.$('form.ticket_columns .requester_email').prop('checked'),
             status: this.$('form.ticket_columns .status').prop('checked'),
             priority: this.$('form.ticket_columns .priority').prop('checked'),
             created_at: this.$('form.ticket_columns .created').prop('checked'),
@@ -247,6 +251,7 @@
             description:  this.$('form.ticket_columns .description').prop('checked'),
             recipient: this.$('form.ticket_columns .recipient').prop('checked'),
             submitter: this.$('form.ticket_columns .submitter').prop('checked'),
+            submitter_email: this.$('form.ticket_columns .submitter_email').prop('checked'),
             organization: this.$('form.ticket_columns .organization').prop('checked'),
             collaborators: this.$('form.ticket_columns .collaborators').prop('checked'),
             forum_topic: this.$('form.ticket_columns .forum_topic').prop('checked'),
@@ -278,7 +283,6 @@
         this.ajax('search', encodedQuery, sort_by, sort_order, page);
       }
     },
-
     selectCustomFields: function() {
       var that = this,
         allCustomFields = this.allCustomFields,
@@ -293,7 +297,6 @@
       });
       return columns;
     },
-
     onPrevClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -301,7 +304,6 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
-
     onNextClicked: function(e) {
       e.preventDefault();
       this.results = [];
@@ -309,7 +311,6 @@
       this.$('div.results').html('');
       this.$("span.loading").show();
     },
-
     onSearchComplete: function(response) {
       var allPages = this.$('.all_pages').prop('checked');
       this.results = this.results.concat(response.results);
@@ -348,7 +349,6 @@
         this.addUsers(users, last);
       }.bind(this));
     },
-
     addUsers: function(ids, last) {
       _.each(ids, function(id) {
         this.userIDs.push(id);
@@ -365,7 +365,6 @@
         });
       }
     },
-
     encodeResults: function(results) {
       this.encoded = [];
       var custom_fields = this.columns.customFields;
@@ -387,11 +386,11 @@
         });
         if(result.description) {
           result.description = result.description.replace(/"/g, '\"\"');
+          console.log(result.description);
         }
         // format dates
         result.created_at = new Date(result.created_at).toLocaleString();
         result.updated_at = new Date(result.updated_at).toLocaleString();
-
         // look up users from unique array
         var assignee = _.find(this.users, function(user) { return user.id == result.assignee_id; }),
           requester = _.find(this.users, function(user) { return user.id == result.requester_id; }),
@@ -400,60 +399,46 @@
           return _.find(this.users, function(user) { return user.id == id; });
         }, this);
         // replace user ids w/ names
-        if(assignee) {result.assignee = assignee.name;}
-        else {result.assignee = result.assignee_id;}
-        if(requester) {result.requester = requester.name;}
-        else {result.requester = result.requester_id;}
-        if(submitter) {result.submitter = submitter.name;}
-        else {result.submitter = result.submitter_id;}
+        if(assignee) {
+          result.assignee = assignee.name;
+          result.assignee_email = assignee.email;
+        }
+        else {
+          result.assignee = result.assignee_id;
+          result.assignee_email = null;
+        }
+        if(requester) {
+          result.requester = requester.name;
+          result.requester_email = requester.email;
+        }
+        else {
+          result.requester = result.requester_id;
+          result.requester_email = null;
+        }
+        if(submitter) {
+          result.submitter = submitter.name;
+          result.submitter_email = submitter.email;
+        }
+        else {
+          result.submitter = result.submitter_id;
+          result.submitter_email = null;
+        }
         if(collaborators) {result.collaborators = collaborators;}
-
-
-        // encode results  TODO: ADD CONDITIONALITY and iterate this so they don't have to be called by name
-        // this.encoded[n] = {
-        //   type: encodeURIComponent(result.type),
-        //   id: encodeURIComponent(result.id),
-        //   subject: encodeURIComponent(result.subject),
-        //   group_id: encodeURIComponent(result.group_id),
-        //   assignee_id: encodeURIComponent(result.assignee),
-        //   requester_id: encodeURIComponent(result.requester),
-        //   status: encodeURIComponent(result.status),
-        //   priority: encodeURIComponent(result.priority),
-        //   created_at: encodeURIComponent(result.created_at),
-        //   updated_at: encodeURIComponent(result.updated_at),
-
-        //   external_id: encodeURIComponent(result.external_id),
-        //   channel:  encodeURIComponent(result.via.channel),
-        //   description:  encodeURIComponent(result.description),
-        //   recipient:  encodeURIComponent(result.recipient),
-        //   submitter: encodeURIComponent(result.submitter),
-        //   organization_id:  encodeURIComponent(result.organization_id),
-        //   forum_topic_id:  encodeURIComponent(result.forum_topic_id),
-        //   problem_id:  encodeURIComponent(result.problem_id),
-        //   has_incidents:  encodeURIComponent(result.has_incidents),
-        //   tags:  encodeURIComponent(result.tags),
-
-        //   collaborators: _.map(result.collaborators, function(cc) {
-        //     return encodeURIComponent(cc.name);
-        //   }),
-        //   // encode custom field values (all of them) but NOT ids
-        //   custom_fields: _.map(result.custom_fields, function(cf) {
-        //     cf.value = encodeURIComponent(cf.value);
-        //     return cf;
-        //   })
-        // };
         //add status labels
         result.status_label = helpers.fmt('<span class="ticket_status_label %@">%@</span>', result.status, result.status);
-
       }.bind(this));
       // create export
-      var data = this.renderTemplate('_tickets_export', {
-        tickets: results,
-        columns: this.columns
-      });
-      var file = new File([data], 'tickets.csv');
-      var url = URL.createObjectURL(file);
-
+      var url;
+      if (this.exportEnabled === true) {
+        var data = this.renderTemplate('_tickets_export', {
+          tickets: results,
+          columns: this.columns
+        });
+        var file = new File([data], 'tickets.csv');
+        url = URL.createObjectURL(file);
+      } else {
+        url = false;
+      }
       // display results
       var results_html = this.renderTemplate('results', {
         results: results,
@@ -462,7 +447,8 @@
         next_page: this.next_page,
         prev_page: this.prev_page,
         columns: this.columns,
-        download: url
+        download: url,
+        exportEnabled: this.exportEnabled
       });
       this.$("span.loading").hide();
       this.$('div.results').html(results_html);

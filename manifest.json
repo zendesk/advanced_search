@@ -2,12 +2,12 @@
   "name": "Advanced Search",
   "author": {
     "name": "Joe McCarron",
-    "email": "joe@zendesk.com",
+    "email": "success_apps@zendesk.com",
     "url": "https://github.com/jstjoe"
   },
   "defaultLocale": "en",
   "private": false,
   "location": "nav_bar",
-  "version": "0.10.0",
+  "version": "0.10.2",
   "frameworkVersion": "1.0"
 }

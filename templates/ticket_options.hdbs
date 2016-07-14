@@ -119,8 +119,10 @@
     <input type="checkbox" checked class="column_check type"> Type </input>|
     <input type="checkbox" checked class="column_check subject"> Subject </input>|
     <input type="checkbox" checked class="column_check group"> Group </input>|
-    <input type="checkbox" checked class="column_check assignee"> Assignee </input>|
-    <input type="checkbox" checked class="column_check requester"> Requester </input>|
+    <input type="checkbox" checked class="column_check assignee"> Assignee Name</input>|
+    <input type="checkbox" checked class="column_check assignee_email"> Assignee Email</input>|
+    <input type="checkbox" checked class="column_check requester"> Requester Name</input>|
+    <input type="checkbox" checked class="column_check requester_email"> Requester Email</input>|
     <input type="checkbox" checked class="column_check status"> Status </input>|
     <input type="checkbox" checked class="column_check priority"> Priority </input>|
     <input type="checkbox" checked class="column_check created"> Created at </input>|
@@ -130,7 +132,8 @@
     <input type="checkbox" class="column_check channel"> Channel </input>|
     <input type="checkbox" class="column_check description"> Description </input>|
     <input type="checkbox" class="column_check recipient"> Recipient address </input>|
-    <input type="checkbox" class="column_check submitter"> Submitter </input>|
+    <input type="checkbox" class="column_check submitter"> Submitter Name</input>|
+    <input type="checkbox" class="column_check submitter_email"> Submitter Email</input>|
     <input type="checkbox" class="column_check organization"> Organization </input>|
     <input type="checkbox" class="column_check collaborators"> Collaborator(s) </input>|
     <input type="checkbox" class="column_check forum_topic"> Forum Topic </input>|
